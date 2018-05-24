@@ -9,11 +9,11 @@ I faced some trouble in exposing metrics but in the end brute-forced to this com
 
 In gradle file:
 
-{% highlight bash %}
+```
 spring-boot-starter-web: 2.0.0.RELEASE
 spring-boot-starter-actuator: 2.0.2.RELEASE
 micrometer-registry-prometheus: 1.0.1
-{% highlight bash %}
+```
 
 ## Properties
 
@@ -28,5 +28,6 @@ management:
 
 ## Test
 
-
-> http GET http://localhost:8080/actuator/prometheus
+```
+http GET http://localhost:8080/actuator/prometheus
+```
