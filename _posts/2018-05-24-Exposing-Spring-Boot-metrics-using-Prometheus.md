@@ -28,4 +28,5 @@ management:
 
 ## Test
 
-http GET http://localhost:8080/actuator/prometheus
+
+> http GET http://localhost:8080/actuator/prometheus
