@@ -32,4 +32,4 @@ We can instantiate N machines and shard the items in the stream using the modulo
 Divide the stream into frames, for each frame, count frequences and decrease by 1 then move to next frame. We evict items whose frequencies drop to 0. The idea being that items with low frequency will have low probability of staying in the frequency map. This is a great improvement over the previous approach because we can store the results on one machine. Though this approach doesn't seem like it'll work for a stream of homogenous frequencies.
 
 ## References
-https://zpjiang.me/2017/11/13/top-k-elementes-system-design/
+(Top k elements)[https://zpjiang.me/2017/11/13/top-k-elementes-system-design/]
