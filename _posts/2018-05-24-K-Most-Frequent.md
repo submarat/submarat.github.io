@@ -1,8 +1,6 @@
 ---
 published: true
 ---
-## Popular coding question
-
 I was asked this question at an onsite once: Given a non-empty array of integers, return the k most frequent elements.
 
 Example
