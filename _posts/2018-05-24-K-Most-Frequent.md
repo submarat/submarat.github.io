@@ -1,5 +1,5 @@
 ---
-published: false
+published: true
 ---
 ## Popular coding question
 
@@ -21,7 +21,7 @@ Conceptually we don't care for sorting all entries in the frequency map, when we
 
 We can trade space for time complexity by using the knowledge that the maximal frequency of any element will be the length of the list. We can allocate an array to store lists of keys at position corresponding to the frequency of those elements. This way we can scan across our buckets in reverse to obtain k most frequent elemnts
 
-## K most frequency in stream
+## K most frequent in stream
 
 This problem can be extended a system design question where the array cannot possibly fit into the memory of a single machine. There are two approaches we can take then: use optimization 1 + shard and lossy counting.
 
