@@ -1,8 +1,12 @@
+---
+published: true
+---
 A recent coding interview question I saw.
 
-Problem: A currency converter has the exchange rates exchange, such that exchange[i][j] represents the amount of money you would get for exchanging 1 unit of the ith currency for 1 unit of the jth currency. A "non-exchange" (that is, exchanging a currency with itself) is represented by exchange[i][i] = 1. Try to find solution in n^3 time.
+## Problem
+A currency converter has the exchange rates exchange, such that exchange[i][j] represents the amount of money you would get for exchanging 1 unit of the ith currency for 1 unit of the jth currency. A "non-exchange" (that is, exchanging a currency with itself) is represented by exchange[i][i] = 1. Try to find solution in n^3 time.
 
-Example:
+## Example
 Input: [[1, 0.5, 0.2], [1.8, 1, 0.5], [4.05, 1.2, 1]]
 Output: true - we can exchange between currencies 1st, 2nd, 3rd and back to 1st to obtain a larger amount.
 
