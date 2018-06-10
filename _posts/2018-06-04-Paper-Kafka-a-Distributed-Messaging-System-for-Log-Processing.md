@@ -1,7 +1,7 @@
 ---
 published: false
 ---
-http://notes.stephenholiday.com/Kafka.pdf
+[Kafka paper](http://notes.stephenholiday.com/Kafka.pdf)
 
 Questions:
 - Why is having no master node advantageous?
