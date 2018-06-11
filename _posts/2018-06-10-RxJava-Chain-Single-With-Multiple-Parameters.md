@@ -7,7 +7,7 @@ To be honest it has been a steep learning curve and I quickly realized that the 
 
 RxJava has the `Observable` object at it's core and can be thought of as a stream of future events which you can `subscribe` and observe. `Single` is a special type of `Observable` which yields one result. We use `Single` often because we often want to fetch just one object.
 
-Say you have async functions `fa()`, `fb()` and `fc(A a, B b)` which yield three singles `Single<A>`, `Single<B>` and `Single<C>`. `fc(A a, B b` depends on the inputs from `fb()` and `fc()`. What is the best way to construct `Single<C>`? This is the best way I've found:
+Say you have async functions `fa()`, `fb()` and `fc(A a, B b)` which yield three singles `Single<A>`, `Single<B>` and `Single<C>`. `fc(A a, B b)` depends on the inputs from `fb()` and `fc()`. What is the best way to construct `Single<C>`? This is the best way I've found:
 
 ```
 Single<A> fa() { ... }
