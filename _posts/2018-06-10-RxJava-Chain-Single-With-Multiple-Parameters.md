@@ -1,7 +1,7 @@
 ---
 published: true
 ---
-Single starting to contribute to [Trust Wallet](trustwalletapp.com) in 2017 I've had the opportunity touch reactive programming with RxJava. We needed to use RxJava to keep asynchronous code like network calls and db updates manageable.
+Single starting to contribute to [Trust Wallet](http://trustwalletapp.com) in 2017 I've had the opportunity touch reactive programming with RxJava. We needed to use RxJava to keep asynchronous code like network calls and db updates manageable.
 
 To be honest it has been a steep learning curve and I quickly realized that the reactive programming was a far cry from the imperative code I was used to writing. Here's a trick I picked up recently.
 
