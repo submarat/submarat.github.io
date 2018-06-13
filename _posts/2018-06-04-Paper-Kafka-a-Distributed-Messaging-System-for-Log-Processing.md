@@ -32,4 +32,6 @@ There are producers <-> brokers <-> consumers. Messages are published in topics 
 
 3.2 Distributed coordination - Zookeeper is used to rebalance load and reach consensus without a master server.
 
-3.3 ...
+3.3 Delivery guaranees - at-least once deliver, client must implement own deduplication, order is ensured from same partition but not from multiple, per-message CRC used to prevent corruption, broker storage permanently going down means messages are lost.
+
+4 Kafka at LinkedIn
