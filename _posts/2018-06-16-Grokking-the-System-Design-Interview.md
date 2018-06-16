@@ -1,5 +1,5 @@
 ---
-published: false
+published: true
 ---
 Having recently completed the "Grokking the System Design Interview" course on educative.io, which I highly recommend. I developed an interest in how large, scalable systems work. Which is good because this kind of deep knowledge is rewarded in the market and it has certainly helped me in my interviews.
 
