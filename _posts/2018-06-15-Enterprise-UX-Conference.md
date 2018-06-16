@@ -1,5 +1,5 @@
 ---
-published: false
+published: true
 ---
 The word "Enterprise" makes me feel boredom immediately. In addition I wouldn't classify my day-to-day work as having much to do with UX. But one way or another I ended up attending EUX this year. I was pleasantly surprised.
 
