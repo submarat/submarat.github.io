@@ -26,8 +26,8 @@ The closing keynote by Ricahrd Buchanan was particularly abstract and interestin
 
 # Logistics and entertainment
 
-We were served tasty food, has a great after and after after party and folks were welcoming and talkative.
+We were served tasty food, has a great after/after after parties. Folks were welcoming and talkative.
 
 # Conclusion
 
-In conclusion UX appears to be playing an increasingly important role in our digital world but good UX is a struggle for most enterprises. It's hard to do at scale. Design Thinking can be applied broadly to many domains and is about problem solving and moving forward from the situation you find yourself in. Enterprises probably feel boring because of the scale at which they operate and the serverance of human connection which that scale brings. At the same time enterprises hold a great deal of power to move the world because of such scale. Transforming enterprises through good UX can make a large impact.
+UX appears to be playing an increasingly important role in our digital world but good UX is a struggle for most enterprises. It's hard to do at scale. Design Thinking can be applied broadly to many domains and is about problem solving and moving forward from the situation you find yourself in. Enterprises probably feel boring because of the scale at which they operate and the serverance of human connection which that scale brings. At the same time enterprises hold a great deal of power to move the world because of such scale. Transforming enterprises through good UX can make a large impact.
