@@ -17,7 +17,7 @@ One of the key advantages of Kafka over competing systems is performance. In tes
  * stateless brokers - don't monitor consumer state. Consumer is responsible for tracking its own offset.
  * `sendfile` function of Linux kernel - more efficient that using `read` and `write`
  * efficient storage - messages are stored as byte data, are not given unique ids. A block offset is used instead
- * builk send - producers can send messages in bulk reducing network overhead
+ * bulk send - producers can send messages in bulk reducing network overhead
 
 # Disadvantages
 
