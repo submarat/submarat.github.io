@@ -1,7 +1,9 @@
 ---
 published: false
 ---
-[Kafka paper](http://notes.stephenholiday.com/Kafka.pdf)
+![ink-image.png]({{site.baseurl}}/_posts/ink-image.png)
+
+This post summarizes the [Kafka paper](http://notes.stephenholiday.com/Kafka.pdf) and my thoughts about it.
 
 Questions:
 - Why is having no master node advantageous?
@@ -18,7 +20,7 @@ Simple storage - data is stored as blocks of bytes (1GB), clients are responsibl
 Efficient transfer - uses Linux/Unix sendFile() method for avoiding unnecessary kernel and system operations.
 
 - Is the broker stateless? What is the benefit?
-- What does CRC mean?
+- What does CRC mean? Cyclic redundancy check
 - What is Avro and schema evolution?
 - What are the key components of Kafka?
 - What is Kafka good and not good for?
