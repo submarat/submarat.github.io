@@ -1,7 +1,7 @@
 ---
 published: true
 ---
-[ink-image.png]({{site.baseurl}}/_posts/ink-image.png)
+![ink-image.png]({{site.baseurl}}/_posts/ink-image.png)
 
 This post summarizes the [Kafka paper](http://notes.stephenholiday.com/Kafka.pdf) and my thoughts about it.
 
