@@ -1,15 +1,21 @@
 ---
 published: true
 ---
-![ink-image.png]({{site.baseurl}}/_posts/ink-image.png)
+[ink-image.png]({{site.baseurl}}/_posts/ink-image.png)
 
 This post summarizes the [Kafka paper](http://notes.stephenholiday.com/Kafka.pdf) and my thoughts about it.
 
-Questions:
-- Why is having no master node advantageous?
-- How is Zookeeper similar and different to Kafka? Is it being used as a subsystem?
+# Architecture
 
-Zookeeper is like a distributed file system. It is used by Kafka for consensus among brokers and consumers.
+# Commercial use
+
+# Reliability
+
+# Performance
+
+# Similar systems
+
+# Discussion
 
 - How are performance gains achieved? How does performance compare against similar systems?
 
@@ -19,10 +25,7 @@ Simple storage - data is stored as blocks of bytes (1GB), clients are responsibl
 
 Efficient transfer - uses Linux/Unix sendFile() method for avoiding unnecessary kernel and system operations.
 
-- Is the broker stateless? What is the benefit?
-- What does CRC mean? Cyclic redundancy check
-- What is Avro and schema evolution?
-- What are the key components of Kafka?
+# Open questions:
 - What is Kafka good and not good for?
 
 Sections:
