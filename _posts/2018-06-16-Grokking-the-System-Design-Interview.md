@@ -3,7 +3,7 @@ published: true
 ---
 Having recently completed the "Grokking the System Design Interview" course on educative.io, which I highly recommend. I developed an interest in how large, scalable systems work. Which is good because this kind of deep knowledge is rewarded in the market and it has certainly helped me in my interviews.
 
-To continue learning I'll go through the papers referenced in the course and provide my summaries on the following papers:
+To continue learning I'll go through the papers referenced in the course and provide my summaries on the following:
 
 1. Dynamo - Highly Available Key-value Store
 
