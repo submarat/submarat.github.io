@@ -1,5 +1,5 @@
 ---
-published: false
+published: true
 ---
 ![ink-image.png]({{site.baseurl}}/_posts/ink-image.png)
 
