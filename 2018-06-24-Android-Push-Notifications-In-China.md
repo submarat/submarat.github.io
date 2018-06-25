@@ -1,0 +1,1 @@
+Trust Ethereum Wallet is being used internationally with market share growing in China. The Chinese firewall and lack of google play services means that Firebase push notifications don't work there.
