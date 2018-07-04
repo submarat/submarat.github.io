@@ -12,7 +12,7 @@ Section 2:...
 
 2.2 System Structure - master server, replicas (usually 5), master lease - time during swich master stays elected, DNS for contacting members of the group, election protocol.
 
-2.3 Files, directories and handles - 
+2.3 Files, directories and handles - file system similar but simpler than UNIX'. ACLs stored on ephemeral nodes as files.
 
 Questions:
 - What are the key use cases?
