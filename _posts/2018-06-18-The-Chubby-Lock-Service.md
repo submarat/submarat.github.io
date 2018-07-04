@@ -14,7 +14,9 @@ Section 2:...
 
 2.3 Files, directories and handles - file system similar but simpler than UNIX'. ACLs stored on ephemeral nodes as files.
 
-2.4 Locks and sequencers - ...
+2.4 Locks and sequencers - lock-delay disallows a faulty client from locking a resource for an arbitary time, locking requires write-permissions, lock checking is not mandatory. Exclusive writer-mode, shared reader-mode on lock files.
+
+2.5 Events - ...
 
 Questions:
 - What are the key use cases?
