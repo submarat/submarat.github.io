@@ -14,5 +14,7 @@ Section 2:...
 
 2.3 Files, directories and handles - file system similar but simpler than UNIX'. ACLs stored on ephemeral nodes as files.
 
+2.4 Locks and sequencers - ...
+
 Questions:
 - What are the key use cases?
