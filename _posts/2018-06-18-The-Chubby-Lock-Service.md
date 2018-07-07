@@ -20,7 +20,9 @@ Section 2:...
 
 2.6 API - opaque handle to file, open(), close(), delete(), getSequencer() - similar to a file system.
 
-2.7 Caching - 
+2.7 Caching - Chubby clients cache data in a consistent, write-through cache. Lease mechanism maintains cache. Cache is kept consistent by invalidations sent by master. When data is about to be modified, master invalidates client caches and waits for response or cache lease expires on all clients.
+
+2.8 Sessions and Keep Alives - ...
 
 Questions:
 - What are the key use cases?
