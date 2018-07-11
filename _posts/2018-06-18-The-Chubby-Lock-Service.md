@@ -22,7 +22,9 @@ Section 2:...
 
 2.7 Caching - Chubby clients cache data in a consistent, write-through cache. Lease mechanism maintains cache. Cache is kept consistent by invalidations sent by master. When data is about to be modified, master invalidates client caches and waits for response or cache lease expires on all clients.
 
-2.8 Sessions and Keep Alives - ...
+2.8 Sessions and Keep Alives - session is a relationship between Chubby client and cell. Keep Alives maintain session active. The session is deemed expired after if Keep Alives aren't sent for some time.
+
+2.9 Fail-overs - ...
 
 Questions:
 - What are the key use cases?
