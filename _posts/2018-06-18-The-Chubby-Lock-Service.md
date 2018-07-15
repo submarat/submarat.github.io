@@ -28,5 +28,7 @@ Section 2:...
 
 2.10 Database implementation - replicated version of Berkeley DB was used by early Chubby implementations.
 
+3.0 Mechanism for scaling - ...
+
 Questions:
 - What are the key use cases?
