@@ -24,7 +24,9 @@ Section 2:...
 
 2.8 Sessions and Keep Alives - session is a relationship between Chubby client and cell. Keep Alives maintain session active. The session is deemed expired after if Keep Alives aren't sent for some time.
 
-2.9 Fail-overs - ...
+2.9 Fail-overs - new master recovers state from a mix of database via regular replication protocol, client state and state estimation and gives applications the illusion of distruption-free operation during fail-over.
+
+2.10 Database implementation - replicated version of Berkeley DB was used by early Chubby implementations.
 
 Questions:
 - What are the key use cases?
