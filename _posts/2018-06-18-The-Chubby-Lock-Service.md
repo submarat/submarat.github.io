@@ -3,6 +3,12 @@ published: false
 ---
 [The paper](https://static.googleusercontent.com/media/research.google.com/en//archive/chubby-osdi06.pdf)
 
+Questions:
+- Why is this paper so long?
+- How can I use Chubby for an application of my own?
+- How does Paxos work?
+- What systems use Chubby?
+
 Section 1:
 Chubby is used by GFS and Bigtable for storing shared metadata. Interface similar to filesystem. Based on Paxos distributed concensus algorithm.
 
