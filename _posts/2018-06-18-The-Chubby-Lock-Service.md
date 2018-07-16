@@ -34,7 +34,13 @@ Section 2:...
 
 2.10 Database implementation - replicated version of Berkeley DB was used by early Chubby implementations.
 
-3.0 Mechanism for scaling - ...
+3.0 Mechanism for scaling - have seen 90,000 clients communicating with one master. Master may increase lease times during high load to deal with fewer Keep Alives as typical failure mode is failing to process them all. 
+
+3.1 Proxies - Chubby's protocol can be proxied, but proxies aren't ideal
+
+3.2 Partitioning - namespace of a cell can be partitioned between servers. Partitioning reduces read/write traffic on any one partition but not Keep Alive traffic.
+
+4. Uses, surprises and design errors - ... 
 
 Questions:
 - What are the key use cases?
