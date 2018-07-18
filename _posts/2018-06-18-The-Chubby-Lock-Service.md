@@ -40,7 +40,10 @@ Section 2:...
 
 3.2 Partitioning - namespace of a cell can be partitioned between servers. Partitioning reduces read/write traffic on any one partition but not Keep Alive traffic.
 
-4. Uses, surprises and design errors - ... 
+4. Uses, surprises and design errors
+4.1 - use and behavior - keep alives dominate network traffic
+
+4.2 - Java client - ...
 
 Questions:
 - What are the key use cases?
