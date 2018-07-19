@@ -44,7 +44,8 @@ Section 2:...
 4.1 Use and behavior - keep alives dominate network traffic
 
 4.2 Java client - 7000 LOC 
-4.3 Use as a name server - ...
+4.3 Use as a name server - Chubby's very commonly used as a name server within Google. It can scale well.
+4.4 Problems with failover - ...
 
 Questions:
 - What are the key use cases?
