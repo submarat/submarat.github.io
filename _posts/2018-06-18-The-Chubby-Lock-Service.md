@@ -46,6 +46,7 @@ Section 2:...
 4.2 Java client - 7000 LOC 
 4.3 Use as a name server - Chubby's very commonly used as a name server within Google. It can scale well.
 4.4 Problems with failover - original fail-over design requires master to write new sessions as they are created.
+4.5 Abusive clients - ...
 
 Questions:
 - What are the key use cases?
