@@ -3,11 +3,7 @@ published: false
 ---
 [The paper](https://static.googleusercontent.com/media/research.google.com/en//archive/chubby-osdi06.pdf)
 
-Questions:
-- Why is this paper so long?
-- How can I use Chubby for an application of my own?
-- How does Paxos work?
-- What systems use Chubby?
+Chubby is a distributed lock service. It's interface and design share similarities with file systems, it maintains high reliability using typically 5 replicas. After release it's found its use as name server within Google. This paper went into details about low-level systems programming concepts for which I don't have much of a taste. Probably because I haven't been exposed to these concepts in the past. I may review and tidy up these notes in the future, in the mean time they'll serve as a summary of this paper. Which I found boring.  
 
 Section 1:
 Chubby is used by GFS and Bigtable for storing shared metadata. Interface similar to filesystem. Based on Paxos distributed concensus algorithm.
@@ -46,7 +42,6 @@ Section 2:...
 4.2 Java client - 7000 LOC 
 4.3 Use as a name server - Chubby's very commonly used as a name server within Google. It can scale well.
 4.4 Problems with failover - original fail-over design requires master to write new sessions as they are created.
-4.5 Abusive clients - ...
-
-Questions:
-- What are the key use cases?
+4.5 Abusive clients - authors didn't predict how Chubby will be used which made Chubby vulnerable to abuse-like usage despite the system being used internally. Several approaches were taken to mitigate the risk - reviews, storage quotas, making operations cheaper.
+4.6 Lessons learned - developers don't often think about availability, fine-grained control could be ignored because it's usually discarded during system optimization, RPC use affects transport protocol choice.
+5 Related work - Chubby was based on a file system
