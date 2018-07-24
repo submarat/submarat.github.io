@@ -44,4 +44,4 @@ Section 2:...
 4.4 Problems with failover - original fail-over design requires master to write new sessions as they are created.
 4.5 Abusive clients - authors didn't predict how Chubby will be used which made Chubby vulnerable to abuse-like usage despite the system being used internally. Several approaches were taken to mitigate the risk - reviews, storage quotas, making operations cheaper.
 4.6 Lessons learned - developers don't often think about availability, fine-grained control could be ignored because it's usually discarded during system optimization, RPC use affects transport protocol choice.
-5 Related work - Chubby was based on a file system
+5 Related work - Chubby was based on file systems such as AFS. Because it's a lock service it isn't intended to be used for storing large volumes of data. 
