@@ -1,9 +1,9 @@
 ---
 published: true
 ---
-[The paper](https://static.googleusercontent.com/media/research.google.com/en//archive/chubby-osdi06.pdf)
+Chubby is a distributed lock service. Its interface and design share similarities with file systems. This article summarizes [the paper](https://static.googleusercontent.com/media/research.google.com/en//archive/chubby-osdi06.pdf) about Chubby.
 
-Chubby is a distributed lock service. It's interface and design share similarities with file systems, it maintains high reliability using typically 5 replicas. After release it's found its use as name server within Google. This paper went into details about low-level systems programming concepts for which I don't have much of a taste. Probably because I haven't been exposed to these concepts in the past. I may review and tidy up these notes in the future, in the mean time they'll serve as a summary of this paper. Which I found boring.  
+It maintains high reliability using typically 5 replicas. After release it's found its use as name server within Google. This paper went into details about low-level systems programming concepts for which I don't have much of a taste. Probably because I haven't been exposed to these concepts in the past. I may review and tidy up these notes in the future, in the mean time they'll serve as a summary of this paper. Which I found boring.  
 
 Section 1:
 Chubby is used by GFS and Bigtable for storing shared metadata. Interface similar to filesystem. Based on Paxos distributed concensus algorithm.
