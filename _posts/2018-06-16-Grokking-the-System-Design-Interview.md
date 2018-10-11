@@ -24,3 +24,5 @@ To continue learning I'll go through the papers referenced in the course and pro
 9. MapReduce - Simplified Data Processing on Large Clusters
 
 10. Hadoop - A Distributed File System
+
+11. BigTable - A Distributed Storage System for Structured Data
