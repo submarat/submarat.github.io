@@ -26,3 +26,5 @@ To continue learning I'll go through the papers referenced in the course and pro
 10. Hadoop - A Distributed File System
 
 11. BigTable - A Distributed Storage System for Structured Data
+
+12. Cassandra - A Decentralized Structured Storage System
