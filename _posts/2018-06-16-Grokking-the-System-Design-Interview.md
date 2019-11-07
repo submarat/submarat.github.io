@@ -9,7 +9,7 @@ To continue learning I'll go through the papers referenced in the course and pro
 
 2. Kafka - A Distributed Messaging System for Log Processing
 
-3. Consistant Hashing - Original paper
+3. Consistent Hashing - Original paper
 
 4. Paxos - Protocol for distributed consensus
 
