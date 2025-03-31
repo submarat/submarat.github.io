@@ -4,16 +4,7 @@ title: About
 permalink: /about/
 ---
 
-Software engineer with experience in REST APIs, embedded systems development, PKI, Android and full-stack development.
-
-Some of recent projects:
-- [HPE Infosight](https://www.hpe.com/us/en/storage/infosight.html)
-  - Full-stack development REST APIs, PostgreSQL, React JS
-  - Microservice development in Java Spring Boot
-- [Trust - Ethereum Wallet](https://trustwalletapp.com/)
-  - Open source Android development
-- [Headphone Goldfish](https://play.google.com/store/apps/details?id=com.goldfisher.hg)
-  - Game development in Unity
+Marat has enjoyed solving puzzles from a young age. He attended University of Edinburgh to earn his MInf 2008-2013. He has carved a career in software engineering 2013-2025. Following job market trends he has increased his focus on ML/AI and technical AI safety 2021 onwards.
 
 ### Contact me
 
