@@ -280,9 +280,13 @@ nav {
     vertical-align: middle;
     line-height: 1.4;
     outline: none;
+    box-shadow: none;
 
-    &:focus {
+    &:focus,
+    &:focus-visible,
+    &:active {
       outline: none;
+      box-shadow: none;
     }
 
     @include mobile {
