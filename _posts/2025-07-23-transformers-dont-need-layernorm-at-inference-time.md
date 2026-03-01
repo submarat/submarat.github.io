@@ -3,7 +3,7 @@ layout: post
 title: Transformers Don't Need LayerNorm at Inference Time
 ---
 
-I co-authored a post on LessWrong on removing LayerNorm from transformers by fine-tuning and implications for mechanistic interpretability (direct logit attribution, attribution patching, entropy neurons).
+Accepted to ICLR 2026. I co-authored a post on LessWrong on removing LayerNorm from transformers by fine-tuning and implications for mechanistic interpretability (direct logit attribution, attribution patching, entropy neurons).
 
 **→ [Read on LessWrong](https://www.lesswrong.com/posts/KbFuuaBKRP7FcAADL/transformers-don-t-need-layernorm-at-inference-time)**
 
