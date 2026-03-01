@@ -345,6 +345,62 @@ footer {
   text-align: center;
 }
 
+//
+// Archive page
+//
+
+.archive {
+  .archive-year {
+    margin-bottom: 2em;
+  }
+
+  .archive-year-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.5em;
+    padding-bottom: 0.25em;
+    border-bottom: 1px solid var(--theme-border);
+  }
+
+  .archive-month-title {
+    font-size: 1.1rem;
+    margin: 1.25em 0 0.5em 0;
+    color: var(--theme-text-muted);
+    font-weight: 600;
+  }
+
+  .archive-count {
+    font-weight: 400;
+    color: var(--theme-text-muted);
+    font-size: 0.9em;
+  }
+
+  .archive-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+  }
+
+  .archive-item {
+    margin: 0.5em 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1em;
+    flex-wrap: wrap;
+
+    a {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
+  .archive-date {
+    font-size: 0.9em;
+    color: var(--theme-text-muted);
+    white-space: nowrap;
+  }
+}
+
 // Settled on moving the import of syntax highlighting to the bottom of the CSS
 // ... Otherwise it really bloats up the top of the CSS file and makes it difficult to find the start
 @import "highlights";
