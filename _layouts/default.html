@@ -27,6 +27,7 @@
           </div>
 
           <nav>
+            <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode"></button>
             <a href="{{ site.baseurl }}/">Blog</a>
             <a href="{{ site.baseurl }}/about">About</a>
           </nav>
@@ -47,5 +48,28 @@
     </div>
 
     {% include analytics.html %}
+    <script>
+      (function() {
+        var theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+        var btn = document.getElementById('theme-toggle');
+        function updateBtn() {
+          var t = document.documentElement.getAttribute('data-theme');
+          if (btn) {
+            btn.textContent = t === 'dark' ? '\u263C' : '\u263E';
+            btn.setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+          }
+        }
+        updateBtn();
+        if (btn) {
+          btn.addEventListener('click', function() {
+            var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            updateBtn();
+          });
+        }
+      })();
+    </script>
   </body>
 </html>
