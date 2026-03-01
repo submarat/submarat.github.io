@@ -303,14 +303,32 @@ nav {
 // .main
 //
 
-.posts > .post {
+.posts > .post-wrapper {
+  position: relative;
   padding-bottom: 2em;
   border-bottom: 1px solid var(--theme-border);
+
+  &:last-child {
+    padding-bottom: 1em;
+    border-bottom: none;
+  }
 }
 
-.posts > .post:last-child {
-  padding-bottom: 1em;
-  border-bottom: none;
+.post-link-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.post-wrapper .entry a {
+  position: relative;
+  z-index: 2;
+}
+
+.posts > .post-wrapper .post {
+  position: relative;
+  z-index: 0;
 }
 
 .post {
@@ -325,11 +343,6 @@ nav {
 
   .comments {
     margin-top: 10px;
-  }
-
-  .read-more {
-    text-transform: uppercase;
-    font-size: 15px;
   }
 }
 
