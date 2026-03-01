@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "ARENA Capstone: Hyperparameter tuning for MELBO"
-date: 2024-10-05 11:30:11 UTC
-excerpt: Co-authored with Aaron Kaufman for the ARENA capstone: we replicated MELBO (Mechanistically Eliciting Latent Behaviors) on Llama-3.2-1b-Instruct and did a hyperparameter sweep for the R value using diversity and coherence metrics.
+date: 2024-10-05
+excerpt: "Co-authored with Aaron Kaufman for the ARENA capstone: we replicated MELBO (Mechanistically Eliciting Latent Behaviors) on Llama-3.2-1b-Instruct and did a hyperparameter sweep for the R value using diversity and coherence metrics."
 ---
 
 Co-authored with Aaron Kaufman for the ARENA capstone: we replicated MELBO (Mechanistically Eliciting Latent Behaviors) on Llama-3.2-1b-Instruct and did a hyperparameter sweep for the R value using diversity and coherence metrics.
