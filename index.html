@@ -5,10 +5,14 @@ layout: default
 <div class="posts">
   {% assign published_posts = site.posts | where_exp: "item", "item.published != false" %}
   {% for post in published_posts %}
-    {% assign words = post.content | number_of_words %}
-    {% assign read_time = words | divided_by: 200 %}
-    {% if read_time < 1 %}
-      {% assign read_time = 1 %}
+    {% if post.reading_time_minutes %}
+      {% assign read_time = post.reading_time_minutes %}
+    {% else %}
+      {% assign words = post.content | number_of_words %}
+      {% assign read_time = words | divided_by: 200 %}
+      {% if read_time < 1 %}
+        {% assign read_time = 1 %}
+      {% endif %}
     {% endif %}
     <div class="post-wrapper" data-href="{{ site.baseurl }}{{ post.url }}" role="link" tabindex="0">
       <article class="post">

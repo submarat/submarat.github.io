@@ -279,6 +279,11 @@ nav {
     cursor: pointer;
     vertical-align: middle;
     line-height: 1.4;
+    outline: none;
+
+    &:focus {
+      outline: none;
+    }
 
     @include mobile {
       margin-left: 10px;
