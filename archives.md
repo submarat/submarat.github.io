@@ -6,7 +6,7 @@ permalink: /archives/
 
 <div class="archive">
 {% assign posts_by_year = site.posts | group_by_exp: "post", "post.date | date: '%Y'" %}
-{% for year in posts_by_year reversed %}
+{% for year in posts_by_year %}
   <section class="archive-year">
     <h2 class="archive-year-title">{{ year.name }} <span class="archive-count">({{ year.items.size }})</span></h2>
     {% assign by_month = year.items | group_by_exp: "post", "post.date | date: '%m'" | sort: "name" | reverse %}
