@@ -3,7 +3,8 @@ layout: default
 ---
 
 <div class="posts">
-  {% for post in site.posts %}
+  {% assign published_posts = site.posts | where_exp: "item", "item.published != false" %}
+  {% for post in published_posts %}
     {% assign words = post.content | number_of_words %}
     {% assign read_time = words | divided_by: 200 %}
     {% if read_time < 1 %}

@@ -1,5 +1,5 @@
 ---
-published: true
+published: false
 ---
 Single starting to contribute to [Trust Wallet](http://trustwalletapp.com) in 2017 I've had the opportunity touch reactive programming with RxJava. We needed to use RxJava to keep asynchronous code like network calls and db updates manageable.
 

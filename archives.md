@@ -5,7 +5,8 @@ permalink: /archives/
 ---
 
 <div class="archive">
-{% assign posts_by_year = site.posts | group_by_exp: "post", "post.date | date: '%Y'" %}
+{% assign published_posts = site.posts | where_exp: "item", "item.published != false" %}
+{% assign posts_by_year = published_posts | group_by_exp: "post", "post.date | date: '%Y'" %}
 {% for year in posts_by_year %}
   <section class="archive-year">
     <h2 class="archive-year-title">{{ year.name }} <span class="archive-count">({{ year.items.size }})</span></h2>

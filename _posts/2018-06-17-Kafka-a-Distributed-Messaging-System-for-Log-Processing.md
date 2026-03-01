@@ -1,5 +1,5 @@
 ---
-published: true
+published: false
 ---
 This post summarizes the [Kafka paper](http://notes.stephenholiday.com/Kafka.pdf) and my thoughts about it.
 

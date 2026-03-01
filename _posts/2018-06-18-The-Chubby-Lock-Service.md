@@ -1,5 +1,5 @@
 ---
-published: true
+published: false
 ---
 Chubby is a distributed lock service. Its interface and design share similarities with file systems. This article summarizes [the paper](https://static.googleusercontent.com/media/research.google.com/en//archive/chubby-osdi06.pdf) about Chubby.
 
