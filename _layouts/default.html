@@ -72,5 +72,23 @@
         }
       })();
     </script>
+    <script>
+      (function() {
+        document.querySelectorAll('.post-wrapper[data-href]').forEach(function(wrapper) {
+          wrapper.addEventListener('click', function(e) {
+            if (e.target.closest('a')) return;
+            var href = wrapper.getAttribute('data-href');
+            if (href) window.location = href;
+          });
+          wrapper.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              var href = wrapper.getAttribute('data-href');
+              if (href) window.location = href;
+            }
+          });
+        });
+      })();
+    </script>
   </body>
 </html>
