@@ -316,20 +316,10 @@ nav {
 }
 
 .post-wrapper .post-meta {
-  display: flex;
-  gap: 1em;
-  flex-wrap: wrap;
   margin: -0.5em 0 1em 0;
   font-size: 0.95em;
   color: var(--theme-text-muted);
   font-style: italic;
-}
-
-.post-wrapper .post-read-time {
-  &::before {
-    content: " · ";
-    font-style: normal;
-  }
 }
 
 .post-wrapper .entry a {
