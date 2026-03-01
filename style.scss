@@ -10,6 +10,39 @@
 // Syntax highlighting @import is at the bottom of this file
 
 /**************/
+/* THEME (light/dark) */
+/**************/
+
+:root {
+  --theme-bg: #fff;
+  --theme-text: #333;
+  --theme-text-muted: #666;
+  --theme-border: #eee;
+  --theme-heading: #222;
+  --theme-footer-bg: #eee;
+  --theme-code-bg: #efefef;
+  --theme-selection-bg: #eee;
+  --theme-selection-color: #000;
+}
+
+[data-theme="dark"] {
+  --theme-bg: #1a1a1a;
+  --theme-text: #e0e0e0;
+  --theme-text-muted: #a0a0a0;
+  --theme-border: #333;
+  --theme-heading: #f0f0f0;
+  --theme-footer-bg: #252525;
+  --theme-code-bg: #2d2d2d;
+  --theme-selection-bg: #444;
+  --theme-selection-color: #fff;
+}
+
+[data-theme="dark"] .highlight {
+  background-color: var(--theme-code-bg);
+  border-color: var(--theme-border);
+}
+
+/**************/
 /* BASE RULES */
 /**************/
 
@@ -18,9 +51,10 @@ html {
 }
 
 body {
-	background: $white;
+  background: var(--theme-bg);
   font: 18px/1.4 $helvetica;
-  color: $darkGray;
+  color: var(--theme-text);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .container {
@@ -32,7 +66,7 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: $helveticaNeue;
-  color: $darkerGray;
+  color: var(--theme-heading);
   font-weight: bold;
 
   line-height: 1.7;
@@ -51,6 +85,13 @@ h1 {
   }
 }
 
+// Post titles: smaller so long titles fit on one line
+.post h1 {
+  font-size: 1.35rem;
+  line-height: 1.3;
+  margin-top: 0;
+}
+
 h2 {
   font-size: 24px;
 }
@@ -61,7 +102,7 @@ h3 {
 
 h4 {
   font-size: 18px;
-  color: $gray;
+  color: var(--theme-text-muted);
 }
 
 p {
@@ -115,19 +156,22 @@ img {
   max-width: none;
 }
 
-.date {
+.date,
+.post-date {
   font-style: italic;
-  color: $gray;
+  color: var(--theme-text-muted);
+  font-size: 0.95em;
+  margin: -0.5em 0 1em 0;
 }
 
 // Specify the color of the selection
 ::-moz-selection {
-  color: $black;
-  background: $lightGray;
+  color: var(--theme-selection-color);
+  background: var(--theme-selection-bg);
 }
 ::selection {
-  color: $black;
-  background: $lightGray;
+  color: var(--theme-selection-color);
+  background: var(--theme-selection-bg);
 }
 
 // Nicolas Gallagher's micro clearfix hack
@@ -156,7 +200,7 @@ img {
 
 .masthead {
   padding: 20px 0;
-  border-bottom: 1px solid $lightGray;
+  border-bottom: 1px solid var(--theme-border);
 
   @include mobile {
     text-align: center;
@@ -192,7 +236,7 @@ img {
 
 .site-name {
   margin: 0;
-  color: $darkGray;
+  color: var(--theme-text);
   cursor: pointer;
   font-family: $helveticaNeue;
   font-weight: 300;
@@ -202,7 +246,7 @@ img {
 
 .site-description {
   margin: -5px 0 0 0;
-  color: $gray;
+  color: var(--theme-text-muted);
   font-size: 16px;
 
   @include mobile {
@@ -223,9 +267,27 @@ nav {
     font-size: 16px;
   }
 
+  .theme-toggle {
+    margin-left: 20px;
+    margin-right: 0;
+    padding: 0.2em 0.5em;
+    font-size: 1.1em;
+    background: transparent;
+    border: 1px solid var(--theme-border);
+    border-radius: 4px;
+    color: var(--theme-text);
+    cursor: pointer;
+    vertical-align: middle;
+    line-height: 1.4;
+
+    @include mobile {
+      margin-left: 10px;
+    }
+  }
+
   a {
     margin-left: 20px;
-    color: $darkGray;
+    color: var(--theme-text);
     text-align: right;
     font-weight: 300;
     letter-spacing: 1px;
@@ -243,7 +305,7 @@ nav {
 
 .posts > .post {
   padding-bottom: 2em;
-  border-bottom: 1px solid $lightGray;
+  border-bottom: 1px solid var(--theme-border);
 }
 
 .posts > .post:last-child {
@@ -254,9 +316,9 @@ nav {
 .post {
   blockquote {
     margin: 1.8em .8em;
-    border-left: 2px solid $gray;
+    border-left: 2px solid var(--theme-text-muted);
     padding: 0.1em 1em;
-    color: $gray;
+    color: var(--theme-text-muted);
     font-size: 22px;
     font-style: italic;
   }
@@ -273,9 +335,9 @@ nav {
 
 .wrapper-footer {
   margin-top: 50px;
-  border-top: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
-  background-color: $lightGray;
+  border-top: 1px solid var(--theme-border);
+  border-bottom: 1px solid var(--theme-border);
+  background-color: var(--theme-footer-bg);
 }
 
 footer {
