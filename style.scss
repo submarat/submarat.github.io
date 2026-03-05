@@ -42,6 +42,49 @@
   border-color: var(--theme-border);
 }
 
+/* Chess widget */
+.chess-widget {
+  position: fixed;
+  top: 100px;
+  right: 20px;
+  z-index: 100;
+  background: var(--theme-bg);
+  border: 1px solid var(--theme-border);
+  border-radius: 6px;
+  padding: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+
+  &.hidden {
+    display: none;
+  }
+
+  iframe {
+    border: 1px solid var(--theme-border);
+    border-radius: 4px;
+    width: 100px;
+    height: 130px;
+  }
+
+  .chess-full-link {
+    font-size: 0.75rem;
+    color: var(--theme-text-muted);
+  }
+
+  @media screen and (max-width: 980px) {
+    right: 10px;
+  }
+
+  @include mobile {
+    top: 80px;
+    right: 50%;
+    transform: translateX(50%);
+  }
+}
+
 /**************/
 /* BASE RULES */
 /**************/
@@ -294,7 +337,8 @@ nav {
     }
   }
 
-  .nav-icon {
+  .nav-icon,
+  .chess-toggle {
     margin-left: 20px;
     padding: 0.2em 0.5em;
     font-size: 1.1em;
@@ -302,10 +346,17 @@ nav {
     text-decoration: none;
     vertical-align: middle;
     line-height: 1.4;
+    background: transparent;
+    border: none;
+    cursor: pointer;
 
     @include mobile {
       margin-left: 10px;
     }
+  }
+
+  .chess-toggle:hover {
+    opacity: 0.8;
   }
 
   a {
