@@ -42,10 +42,6 @@
   border-color: var(--theme-border);
 }
 
-[data-theme="dark"] .doodle {
-  filter: invert(1);
-}
-
 /**************/
 /* BASE RULES */
 /**************/
@@ -342,24 +338,6 @@ nav {
 }
 
 .post {
-  .doodle {
-    float: right;
-    max-width: 180px;
-    margin: 0 -220px 1em 1.5em;
-    border-radius: 4px;
-
-    @media screen and (max-width: 980px) {
-      float: none;
-      display: block;
-      margin: 1em 0;
-      max-width: 100%;
-    }
-
-    @include mobile {
-      margin: 1em auto;
-    }
-  }
-
   blockquote {
     margin: 1.8em .8em;
     border-left: 2px solid var(--theme-text-muted);
