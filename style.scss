@@ -294,6 +294,20 @@ nav {
     }
   }
 
+  .nav-icon {
+    margin-left: 20px;
+    padding: 0.2em 0.5em;
+    font-size: 1.1em;
+    color: var(--theme-text);
+    text-decoration: none;
+    vertical-align: middle;
+    line-height: 1.4;
+
+    @include mobile {
+      margin-left: 10px;
+    }
+  }
+
   a {
     margin-left: 20px;
     color: var(--theme-text);
