@@ -79,14 +79,12 @@
   }
 }
 
-.footer-chess-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+nav .nav-chess-btn {
+  margin-left: 20px;
   padding: 0;
-  width: 40px;
-  height: 40px;
-  font-size: 1.8em;
+  width: 36px;
+  height: 36px;
+  font-size: 1.5em;
   line-height: 1;
   color: var(--theme-text);
   background: var(--theme-border);
@@ -94,10 +92,13 @@
   border-radius: 50%;
   cursor: pointer;
   vertical-align: middle;
-  transform: translateY(-2px);
 
   &:hover {
     opacity: 0.8;
+  }
+
+  @include mobile {
+    margin-left: 10px;
   }
 }
 
@@ -434,11 +435,7 @@ nav {
 
 footer {
   padding: 20px 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 15px;
+  text-align: center;
 }
 
 //
