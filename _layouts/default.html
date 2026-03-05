@@ -39,13 +39,18 @@
 
           <nav>
             <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode"></button>
-            <a href="https://submarat.github.io/chess/" class="nav-icon" aria-label="Chess" title="Chess" target="_blank" rel="noopener">♔</a>
+            <button type="button" id="chess-toggle" class="nav-icon chess-toggle" aria-label="Chess" title="Chess">♔</button>
             <a href="{{ site.baseurl }}/">Blog</a>
             <a href="{{ site.baseurl }}/archives">Archive</a>
             <a href="{{ site.baseurl }}/about">About</a>
           </nav>
         </header>
       </div>
+    </div>
+
+    <div id="chess-widget" class="chess-widget hidden">
+      <iframe src="https://submarat.github.io/chess/mini.html" title="Mini Chess"></iframe>
+      <a href="https://submarat.github.io/chess/" class="chess-full-link" target="_blank" rel="noopener">Full game →</a>
     </div>
 
     <div id="main" role="main" class="container">
@@ -80,6 +85,17 @@
             document.documentElement.setAttribute('data-theme', next);
             localStorage.setItem('theme', next);
             updateBtn();
+          });
+        }
+      })();
+    </script>
+    <script>
+      (function() {
+        var chessToggle = document.getElementById('chess-toggle');
+        var chessWidget = document.getElementById('chess-widget');
+        if (chessToggle && chessWidget) {
+          chessToggle.addEventListener('click', function() {
+            chessWidget.classList.toggle('hidden');
           });
         }
       })();
