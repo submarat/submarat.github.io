@@ -65,7 +65,7 @@
     border: 1px solid var(--theme-border);
     border-radius: 4px;
     width: 200px;
-    height: 260px;
+    height: 300px;
   }
 
   @media screen and (max-width: 980px) {
@@ -90,8 +90,9 @@
   font-size: 1.8em;
   line-height: 1;
   color: var(--theme-text);
-  background: transparent;
+  background: var(--theme-border);
   border: none;
+  border-radius: 50%;
   cursor: pointer;
   vertical-align: middle;
 
