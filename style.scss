@@ -65,7 +65,7 @@
     border: none;
     border-radius: 4px;
     width: 200px;
-    height: 300px;
+    height: 218px;
   }
 
   @media screen and (max-width: 980px) {
@@ -94,6 +94,7 @@
   border-radius: 50%;
   cursor: pointer;
   vertical-align: middle;
+  transform: translateY(-2px);
 
   &:hover {
     opacity: 0.8;
