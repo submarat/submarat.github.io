@@ -28,6 +28,8 @@ The key difference from pretraining is the data: instead of broad internet text,
 
 ### Prompt masking matters
 
+![Input token masking during SFT]({{ site.baseurl }}/images/mask_instruction.png){: .doodle }
+
 One important practical detail: during SFT, you typically mask the loss on the instruction tokens and only compute loss on the response tokens. The implementation is straightforward — set labels to -100 for instruction positions, and the loss function ignores them:
 
 ```python
