@@ -30,16 +30,14 @@
     <div class="wrapper-masthead">
       <div class="container">
         <header class="masthead clearfix">
-          <a href="{{ site.baseurl }}/" class="site-avatar"><img src="{{ site.avatar }}" /></a>
-
           <div class="site-info">
             <h1 class="site-name"><a href="{{ site.baseurl }}/">{{ site.name }}</a></h1>
-            <p class="site-description">{{ site.description }}</p>
           </div>
 
           <nav>
             <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode"></button>
             <button type="button" id="chess-toggle" class="nav-chess-btn" aria-label="Chess" title="Chess">♘</button>
+            <button type="button" id="pen-toggle" class="nav-pen-btn" aria-label="Highlighter" title="Highlighter">▮</button>
             <a href="{{ site.baseurl }}/">Blog</a>
             <a href="{{ site.baseurl }}/archives">Archive</a>
             <a href="{{ site.baseurl }}/about">About</a>
@@ -48,8 +46,13 @@
       </div>
     </div>
 
-    <div id="chess-widget" class="chess-widget hidden">
-      <iframe src="https://submarat.github.io/chess/mini.html" title="Mini Chess"></iframe>
+    <canvas id="draw-canvas" class="draw-canvas"></canvas>
+    <div id="chess-modal" class="chess-modal hidden">
+      <div class="chess-modal-backdrop"></div>
+      <div class="chess-modal-content">
+        <button type="button" class="chess-modal-close" aria-label="Close">&times;</button>
+        <iframe src="https://submarat.github.io/chess/mini.html" title="Mini Chess"></iframe>
+      </div>
     </div>
 
     <div id="main" role="main" class="container">
@@ -91,12 +94,169 @@
     <script>
       (function() {
         var chessToggle = document.getElementById('chess-toggle');
-        var chessWidget = document.getElementById('chess-widget');
-        if (chessToggle && chessWidget) {
-          chessToggle.addEventListener('click', function() {
-            chessWidget.classList.toggle('hidden');
-          });
+        var modal = document.getElementById('chess-modal');
+        var backdrop = modal && modal.querySelector('.chess-modal-backdrop');
+        var closeBtn = modal && modal.querySelector('.chess-modal-close');
+
+        function openModal() {
+          if (modal) modal.classList.remove('hidden');
         }
+
+        function closeModal() {
+          if (modal) modal.classList.add('hidden');
+        }
+
+        if (chessToggle) chessToggle.addEventListener('click', openModal);
+        if (backdrop) backdrop.addEventListener('click', closeModal);
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+      })();
+    </script>
+    <script>
+      (function() {
+        var penToggle = document.getElementById('pen-toggle');
+        var canvas = document.getElementById('draw-canvas');
+        if (!penToggle || !canvas) return;
+
+        var ctx = canvas.getContext('2d');
+        var isDrawing = false;
+        var hasMoved = false;
+        var lastX = 0, lastY = 0;
+        var anchorY = 0;
+        var lastTime = 0;
+        var dpr = window.devicePixelRatio || 1;
+        var strokeColor = '';
+        var drawThreshold = 5;
+        var highlights = [];
+        var saveTimeout = 0;
+        var storageKey = 'highlights-' + (window.location.pathname || '/');
+
+        function loadHighlights() {
+          try {
+            var s = localStorage.getItem(storageKey);
+            if (s) highlights = JSON.parse(s);
+          } catch (_) { highlights = []; }
+        }
+
+        function saveHighlights() {
+          clearTimeout(saveTimeout);
+          saveTimeout = setTimeout(function() {
+            try {
+              localStorage.setItem(storageKey, JSON.stringify(highlights));
+            } catch (_) {}
+          }, 100);
+        }
+
+        function redrawHighlights() {
+          var c = getComputedStyle(document.documentElement).getPropertyValue('--theme-highlight').trim() || 'rgba(255, 255, 0, 0.4)';
+          ctx.fillStyle = c;
+          for (var i = 0; i < highlights.length; i++) {
+            var r = highlights[i];
+            ctx.fillRect(r.x, r.y, r.w, r.h);
+          }
+        }
+
+        function resizeCanvas() {
+          var w = document.documentElement.clientWidth;
+          var h = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+          canvas.width = w * dpr;
+          canvas.height = h * dpr;
+          canvas.style.width = w + 'px';
+          canvas.style.height = h + 'px';
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          redrawHighlights();
+        }
+
+        function pressureToWidth(e) {
+          var pressure = e.pressure;
+          if (e.pointerType === 'pen' && pressure > 0 && pressure < 1) {
+            return Math.max(1, (1 + pressure * 11) * 0.8);
+          }
+          var dx = e.pageX - lastX;
+          var dy = e.pageY - lastY;
+          var dist = Math.sqrt(dx * dx + dy * dy);
+          var dt = Date.now() - lastTime;
+          var speed = dt > 0 ? dist / dt : 0;
+          lastTime = Date.now();
+          var w = 12 - Math.min(11, Math.sqrt(speed) * 4);
+          return Math.max(1, w * 0.8);
+        }
+
+        function disablePenMode() {
+          canvas.classList.remove('drawing');
+          penToggle.classList.remove('active');
+          document.body.classList.remove('pen-drawing');
+          strokeColor = '';
+        }
+
+        function startDraw(e) {
+          if (!canvas.classList.contains('drawing')) return;
+          if (!(e.buttons & 1)) return;
+          hasMoved = false;
+          lastX = e.pageX;
+          lastY = e.pageY;
+          lastTime = Date.now();
+        }
+
+        function draw(e) {
+          if (!canvas.classList.contains('drawing')) return;
+          if (!(e.buttons & 1)) {
+            if (isDrawing) isDrawing = false;
+            return;
+          }
+          if (!hasMoved) {
+            var dx = e.pageX - lastX;
+            var dy = e.pageY - lastY;
+            if (Math.sqrt(dx * dx + dy * dy) < drawThreshold) return;
+            hasMoved = true;
+            isDrawing = true;
+            anchorY = e.pageY;
+            e.preventDefault();
+            return;
+          }
+          if (!isDrawing) return;
+          e.preventDefault();
+          var highlightColor = strokeColor || getComputedStyle(document.documentElement).getPropertyValue('--theme-highlight').trim() || 'rgba(255, 255, 0, 0.4)';
+          var h = 20;
+          var x = Math.min(lastX, e.pageX);
+          var w = Math.abs(e.pageX - lastX);
+          var y = anchorY - h / 2;
+          ctx.fillStyle = highlightColor;
+          ctx.fillRect(x, y, w, h);
+          highlights.push({ x: x, y: y, w: w, h: h });
+          saveHighlights();
+          lastX = e.pageX;
+          lastY = e.pageY;
+        }
+
+        function endDraw(e) {
+          if (e.type === 'pointerup' || e.type === 'pointerleave' || e.type === 'pointercancel') {
+            if (isDrawing) e.preventDefault();
+            isDrawing = false;
+          }
+        }
+
+        penToggle.addEventListener('click', function() {
+          canvas.classList.toggle('drawing');
+          penToggle.classList.toggle('active', canvas.classList.contains('drawing'));
+          document.body.classList.toggle('pen-drawing', canvas.classList.contains('drawing'));
+          strokeColor = '';
+        });
+
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') disablePenMode();
+        });
+
+        document.addEventListener('pointerdown', startDraw);
+        document.addEventListener('pointermove', draw);
+        document.addEventListener('pointerup', endDraw);
+        document.addEventListener('pointerleave', endDraw);
+        document.addEventListener('pointercancel', endDraw);
+
+        loadHighlights();
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
       })();
     </script>
     <script>
