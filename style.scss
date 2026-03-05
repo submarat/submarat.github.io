@@ -23,6 +23,8 @@
   --theme-code-bg: #efefef;
   --theme-selection-bg: #eee;
   --theme-selection-color: #000;
+  --theme-pen: #333;
+  --theme-highlight: rgba(255, 255, 0, 0.4);
 }
 
 [data-theme="dark"] {
@@ -35,6 +37,8 @@
   --theme-code-bg: #2d2d2d;
   --theme-selection-bg: #444;
   --theme-selection-color: #fff;
+  --theme-pen: #a8a8a8;
+  --theme-highlight: rgba(255, 220, 0, 0.5);
 }
 
 [data-theme="dark"] .highlight {
@@ -42,63 +46,123 @@
   border-color: var(--theme-border);
 }
 
-/* Chess widget */
-.chess-widget {
+/* Chess modal */
+.chess-modal {
   position: fixed;
-  bottom: 80px;
-  right: 20px;
-  z-index: 100;
-  background: var(--theme-bg);
-  border: 1px solid var(--theme-border);
-  border-radius: 6px;
-  padding: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  inset: 0;
+  z-index: 200;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  padding: 20px;
 
   &.hidden {
     display: none;
   }
+}
+
+.chess-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.chess-modal-content {
+  position: relative;
+  background: var(--theme-bg);
+  border: 1px solid var(--theme-border);
+  border-radius: 8px;
+  padding: 12px;
+  padding-top: 36px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+  max-width: 90vw;
+  max-height: 90vh;
 
   iframe {
     border: none;
     border-radius: 4px;
-    width: 200px;
-    height: 218px;
-  }
-
-  @media screen and (max-width: 980px) {
-    right: 10px;
-  }
-
-  @include mobile {
-    bottom: 70px;
-    right: 50%;
-    transform: translateX(50%);
+    width: 400px;
+    height: 436px;
+    display: block;
   }
 }
 
-nav .nav-chess-btn {
-  margin-left: 20px;
-  padding: 0;
-  width: 36px;
-  height: 36px;
+.chess-modal-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
   font-size: 1.5em;
   line-height: 1;
-  color: var(--theme-text);
-  background: var(--theme-border);
+  color: var(--theme-text-muted);
+  background: transparent;
   border: none;
-  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    color: var(--theme-text);
+  }
+}
+
+nav .nav-chess-btn,
+nav .nav-pen-btn {
+  margin-left: 20px;
+  padding: 0.2em 0.5em;
+  font-size: 1.1em;
+  background: transparent;
+  border: 1px solid var(--theme-border);
+  border-radius: 4px;
+  color: var(--theme-text);
   cursor: pointer;
   vertical-align: middle;
+  line-height: 1.4;
+  outline: none;
+  box-shadow: none;
 
   &:hover {
     opacity: 0.8;
   }
 
+  &:focus,
+  &:focus-visible,
+  &:active {
+    outline: none;
+    box-shadow: none;
+  }
+
   @include mobile {
     margin-left: 10px;
+  }
+}
+
+nav .nav-pen-btn.active {
+  background: var(--theme-border);
+}
+
+body.pen-drawing {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.draw-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 0;
+  pointer-events: none;
+  touch-action: none;
+
+  &.drawing {
+    cursor: crosshair;
   }
 }
 
@@ -111,10 +175,16 @@ html {
 }
 
 body {
+  position: relative;
   background: var(--theme-bg);
   font: 18px/1.4 $helvetica;
   color: var(--theme-text);
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+#main {
+  position: relative;
+  z-index: 1;
 }
 
 .container {
@@ -255,28 +325,34 @@ img {
 //
 
 .wrapper-masthead {
+  position: relative;
+  z-index: 1;
   margin-bottom: 50px;
 }
 
 .masthead {
   padding: 20px 0;
   border-bottom: 1px solid var(--theme-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 15px;
 
   @include mobile {
+    flex-direction: column;
     text-align: center;
   }
 }
 
 .site-avatar {
-  float: left;
+  flex-shrink: 0;
   width: 70px;
   height: 70px;
   margin-right: 15px;
 
   @include mobile {
-    float: none;
-    display: block;
-    margin: 0 auto;
+    margin-right: 0;
   }
 
   img {
@@ -285,13 +361,8 @@ img {
 }
 
 .site-info {
-  float: left;
-
-  @include mobile {
-    float: none;
-    display: block;
-    margin: 0 auto;
-  }
+  flex: 1;
+  min-width: 0;
 }
 
 .site-name {
@@ -315,14 +386,11 @@ img {
 }
 
 nav {
-  float: right;
-  margin-top: 23px; // @TODO: Vertically middle align
+  flex-shrink: 0;
   font-family: $helveticaNeue;
   font-size: 18px;
 
   @include mobile {
-    float: none;
-    margin-top: 9px;
     display: block;
     font-size: 16px;
   }
@@ -427,6 +495,8 @@ nav {
 }
 
 .wrapper-footer {
+  position: relative;
+  z-index: 1;
   margin-top: 50px;
   border-top: 1px solid var(--theme-border);
   border-bottom: 1px solid var(--theme-border);
