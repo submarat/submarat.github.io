@@ -40,7 +40,7 @@ Without this masking, the model wastes capacity learning to reproduce the prompt
 
 ### Cross-entropy and KL divergence: a subtle point
 
-Something that tripped me up: SFT's cross-entropy loss against a one-hot target is mathematically equivalent to minimizing KL divergence from that one-hot distribution to the model's output distribution. Since the entropy of a one-hot distribution is zero, D_KL(q || p) = H(q, p) - H(q) = H(q, p). So cross-entropy and KL divergence collapse to the same thing.
+Something that tripped me up: SFT's cross-entropy loss against a one-hot target is mathematically equivalent to minimizing KL divergence from that one-hot distribution to the model's output distribution. Since the entropy of a one-hot distribution is zero, D_KL(q ∥ p) = H(q, p) − H(q) = H(q, p). So cross-entropy and KL divergence collapse to the same thing.
 
 But when people say "KL divergence" in the fine-tuning literature, they usually mean comparing two soft distributions — a teacher model's logits against a student's (knowledge distillation), or a trained policy against a reference policy (DPO/RLHF regularization). The one-hot case is degenerate: you're maximizing likelihood of specific tokens, not matching a full distribution.
 
