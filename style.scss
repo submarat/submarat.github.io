@@ -64,8 +64,8 @@
   iframe {
     border: 1px solid var(--theme-border);
     border-radius: 4px;
-    width: 100px;
-    height: 130px;
+    width: 200px;
+    height: 260px;
   }
 
   @media screen and (max-width: 980px) {
@@ -85,9 +85,9 @@
   justify-content: center;
   margin-left: 15px;
   padding: 0;
-  width: 24px;
-  height: 24px;
-  font-size: 1.2em;
+  width: 40px;
+  height: 40px;
+  font-size: 1.8em;
   line-height: 1;
   color: var(--theme-text);
   background: transparent;
