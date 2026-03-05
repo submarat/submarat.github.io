@@ -1,17 +1,23 @@
 
 .highlight {
-  background-color: #efefef;
-  padding: 7px 7px 7px 10px;
-  border: 1px solid #ddd;
-  -moz-box-shadow: 3px 3px rgba(0,0,0,0.1);
-  -webkit-box-shadow: 3px 3px rgba(0,0,0,0.1);
-  box-shadow: 3px 3px rgba(0,0,0,0.1);
-  margin: 20px 0 20px 0;
-  overflow: scroll;
+  background-color: var(--theme-code-bg);
+  padding: 0.75em 1em;
+  border: 1px solid var(--theme-border);
+  border-radius: 4px;
+  margin: 1em 0;
+  overflow-x: auto;
+  font-size: 0.8em;
+  line-height: 1.4;
+}
+
+.highlight code {
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+  font-size: 1em;
 }
 
 code {
-  font-family:'Bitstream Vera Sans Mono','Courier', monospace;
+  font-family: ui-monospace, 'SF Mono', 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+  font-size: 0.9em;
 }
 
 .highlight .c { color: #586E75 } /* Comment */
