@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "How LLMs Go From Base Models to Assistants: A Practitioner's Notes on SFT, RLHF, and DPO"
+title: "How LLMs go from base models to assistants"
 date: 2025-06-24
 excerpt: "Notes on how language models are transformed from raw next-token predictors into useful assistants. Covers the three main stages of post-training — supervised fine-tuning, reinforcement learning from human feedback, and direct preference optimization — along with practical details about tool calling and training dynamics."
 reading_time_minutes: 12
