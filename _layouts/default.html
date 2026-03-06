@@ -36,7 +36,12 @@
 
           <nav>
             <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode"></button>
-            <button type="button" id="pen-toggle" class="nav-pen-btn" aria-label="Highlighter" title="Highlighter">▮</button>
+            <div class="highlighter-controls">
+              <button type="button" id="pen-toggle" class="nav-pen-btn" aria-label="Highlighter" title="Highlighter">
+                <svg class="highlighter-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><g transform="rotate(-15 12 12)"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></g></svg>
+              </button>
+              <button type="button" id="highlighter-clear" class="highlighter-clear" aria-label="Clear highlights" title="Clear highlights">Clear</button>
+            </div>
             <a href="{{ site.baseurl }}/">Blog</a>
             <a href="{{ site.baseurl }}/archives">Archive</a>
             <a href="{{ site.baseurl }}/about">About</a>
@@ -109,16 +114,42 @@
         });
         if (backdrop) backdrop.addEventListener('click', closeModal);
         if (closeBtn) closeBtn.addEventListener('click', closeModal);
+
+        (function() {
+          var bounced = false;
+          var stamps = document.querySelectorAll('.chess-stamp');
+          if (!stamps.length) return;
+
+          function checkScroll() {
+            if (bounced) return;
+            var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            var scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            if (scrollHeight <= 0) return;
+            if (scrollTop >= scrollHeight - 80) {
+              bounced = true;
+              stamps.forEach(function(s) {
+                s.classList.add('bounce');
+                s.addEventListener('animationend', function() { s.classList.remove('bounce'); }, { once: true });
+              });
+            }
+          }
+
+          window.addEventListener('scroll', checkScroll, { passive: true });
+          checkScroll();
+        })();
       })();
     </script>
     <script>
       (function() {
         var penToggle = document.getElementById('pen-toggle');
         var canvas = document.getElementById('draw-canvas');
+        var controlsEl = penToggle && penToggle.closest('.highlighter-controls');
+        var clearBtn = document.getElementById('highlighter-clear');
         if (!penToggle || !canvas) return;
 
         var ctx = canvas.getContext('2d');
         var isDrawing = false;
+        var justFinishedDrawing = false;
         var hasMoved = false;
         var lastX = 0, lastY = 0;
         var anchorY = 0;
@@ -146,13 +177,36 @@
           }, 100);
         }
 
+        function isClickable(el) {
+          if (!el || !el.closest) return false;
+          var clickable = el.closest('a, button, [role="button"], [role="link"], [onclick]');
+          if (clickable) return true;
+          var tag = (el.tagName || '').toLowerCase();
+          return tag === 'a' || tag === 'button';
+        }
+
         function redrawHighlights() {
-          var c = getComputedStyle(document.documentElement).getPropertyValue('--theme-highlight').trim() || 'rgba(255, 255, 0, 0.4)';
-          ctx.fillStyle = c;
-          for (var i = 0; i < highlights.length; i++) {
-            var r = highlights[i];
-            ctx.fillRect(r.x, r.y, r.w, r.h);
+          var isActive = canvas.classList.contains('drawing');
+          ctx.save();
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+          if (isActive && highlights.length > 0) {
+            var c = getComputedStyle(document.documentElement).getPropertyValue('--theme-highlight').trim() || 'rgba(255, 255, 0, 0.4)';
+            ctx.fillStyle = c;
+            for (var i = 0; i < highlights.length; i++) {
+              var r = highlights[i];
+              if (r.cx !== undefined) {
+                ctx.save();
+                ctx.translate(r.cx, r.cy);
+                ctx.rotate(r.angle);
+                ctx.fillRect(-r.length / 2, -r.strokeWidth / 2, r.length, r.strokeWidth);
+                ctx.restore();
+              } else {
+                ctx.fillRect(r.x, r.y, r.w, r.h);
+              }
+            }
           }
+          ctx.restore();
         }
 
         function resizeCanvas() {
@@ -186,13 +240,16 @@
         function disablePenMode() {
           canvas.classList.remove('drawing');
           penToggle.classList.remove('active');
+          if (controlsEl) controlsEl.classList.remove('active');
           document.body.classList.remove('pen-drawing');
           strokeColor = '';
+          redrawHighlights();
         }
 
         function startDraw(e) {
           if (!canvas.classList.contains('drawing')) return;
           if (!(e.buttons & 1)) return;
+          if (isClickable(e.target)) return;
           hasMoved = false;
           lastX = e.pageX;
           lastY = e.pageY;
@@ -211,20 +268,26 @@
             if (Math.sqrt(dx * dx + dy * dy) < drawThreshold) return;
             hasMoved = true;
             isDrawing = true;
-            anchorY = e.pageY;
             e.preventDefault();
             return;
           }
           if (!isDrawing) return;
           e.preventDefault();
           var highlightColor = strokeColor || getComputedStyle(document.documentElement).getPropertyValue('--theme-highlight').trim() || 'rgba(255, 255, 0, 0.4)';
-          var h = 20;
-          var x = Math.min(lastX, e.pageX);
-          var w = Math.abs(e.pageX - lastX);
-          var y = anchorY - h / 2;
+          var strokeWidth = 20;
+          var dx = e.pageX - lastX;
+          var dy = e.pageY - lastY;
+          var length = Math.max(Math.sqrt(dx * dx + dy * dy), 2);
+          var angle = -Math.PI / 12;
+          var cx = (lastX + e.pageX) / 2;
+          var cy = (lastY + e.pageY) / 2;
           ctx.fillStyle = highlightColor;
-          ctx.fillRect(x, y, w, h);
-          highlights.push({ x: x, y: y, w: w, h: h });
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(angle);
+          ctx.fillRect(-length / 2, -strokeWidth / 2, length, strokeWidth);
+          ctx.restore();
+          highlights.push({ cx: cx, cy: cy, length: length, strokeWidth: strokeWidth, angle: angle });
           saveHighlights();
           lastX = e.pageX;
           lastY = e.pageY;
@@ -232,17 +295,39 @@
 
         function endDraw(e) {
           if (e.type === 'pointerup' || e.type === 'pointerleave' || e.type === 'pointercancel') {
-            if (isDrawing) e.preventDefault();
+            if (isDrawing) {
+              justFinishedDrawing = true;
+              e.preventDefault();
+              e.stopPropagation();
+            }
             isDrawing = false;
           }
         }
 
+        document.addEventListener('click', function(e) {
+          if (justFinishedDrawing) {
+            justFinishedDrawing = false;
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }, true);
+
         penToggle.addEventListener('click', function() {
           canvas.classList.toggle('drawing');
           penToggle.classList.toggle('active', canvas.classList.contains('drawing'));
+          if (controlsEl) controlsEl.classList.toggle('active', canvas.classList.contains('drawing'));
           document.body.classList.toggle('pen-drawing', canvas.classList.contains('drawing'));
           strokeColor = '';
+          redrawHighlights();
         });
+
+        if (clearBtn) {
+          clearBtn.addEventListener('click', function() {
+            highlights = [];
+            saveHighlights();
+            redrawHighlights();
+          });
+        }
 
         document.addEventListener('keydown', function(e) {
           if (e.key === 'Escape') disablePenMode();
