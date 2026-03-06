@@ -36,7 +36,6 @@
 
           <nav>
             <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle light/dark mode" title="Toggle light/dark mode"></button>
-            <button type="button" id="chess-toggle" class="nav-chess-btn" aria-label="Chess" title="Chess">♘</button>
             <button type="button" id="pen-toggle" class="nav-pen-btn" aria-label="Highlighter" title="Highlighter">▮</button>
             <a href="{{ site.baseurl }}/">Blog</a>
             <a href="{{ site.baseurl }}/archives">Archive</a>
@@ -93,7 +92,6 @@
     </script>
     <script>
       (function() {
-        var chessToggle = document.getElementById('chess-toggle');
         var modal = document.getElementById('chess-modal');
         var backdrop = modal && modal.querySelector('.chess-modal-backdrop');
         var closeBtn = modal && modal.querySelector('.chess-modal-close');
@@ -106,7 +104,9 @@
           if (modal) modal.classList.add('hidden');
         }
 
-        if (chessToggle) chessToggle.addEventListener('click', openModal);
+        document.addEventListener('click', function(e) {
+          if (e.target.closest('.chess-stamp')) openModal();
+        });
         if (backdrop) backdrop.addEventListener('click', closeModal);
         if (closeBtn) closeBtn.addEventListener('click', closeModal);
       })();
