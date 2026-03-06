@@ -238,12 +238,8 @@
         }
 
         function disablePenMode() {
-          canvas.classList.remove('drawing');
-          penToggle.classList.remove('active');
-          if (controlsEl) controlsEl.classList.remove('active');
-          document.body.classList.remove('pen-drawing');
-          strokeColor = '';
-          redrawHighlights();
+          applyHighlighterState(false);
+          setHighlighterState(false);
         }
 
         function startDraw(e) {
@@ -312,13 +308,34 @@
           }
         }, true);
 
-        penToggle.addEventListener('click', function() {
-          canvas.classList.toggle('drawing');
-          penToggle.classList.toggle('active', canvas.classList.contains('drawing'));
-          if (controlsEl) controlsEl.classList.toggle('active', canvas.classList.contains('drawing'));
-          document.body.classList.toggle('pen-drawing', canvas.classList.contains('drawing'));
+        var highlighterStorageKey = 'highlighter-enabled';
+
+        function setHighlighterState(enabled) {
+          try {
+            localStorage.setItem(highlighterStorageKey, enabled ? '1' : '0');
+          } catch (_) {}
+        }
+
+        function applyHighlighterState(enabled) {
+          if (enabled) {
+            canvas.classList.add('drawing');
+            penToggle.classList.add('active');
+            if (controlsEl) controlsEl.classList.add('active');
+            document.body.classList.add('pen-drawing');
+          } else {
+            canvas.classList.remove('drawing');
+            penToggle.classList.remove('active');
+            if (controlsEl) controlsEl.classList.remove('active');
+            document.body.classList.remove('pen-drawing');
+          }
           strokeColor = '';
           redrawHighlights();
+        }
+
+        penToggle.addEventListener('click', function() {
+          var enabled = !canvas.classList.contains('drawing');
+          applyHighlighterState(enabled);
+          setHighlighterState(enabled);
         });
 
         if (clearBtn) {
@@ -342,6 +359,11 @@
         loadHighlights();
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
+
+        try {
+          var saved = localStorage.getItem(highlighterStorageKey);
+          if (saved === '1') applyHighlighterState(true);
+        } catch (_) {}
       })();
     </script>
     <script>
