@@ -47,7 +47,11 @@ $$L = -\frac{1}{N}\sum_{i} \log P(x_{i+1} \mid x_1, \ldots, x_i)$$
 
 To reach GPT-2's ~0.5M-token effective batch on one GPU, I used gradient accumulation: 32 sequences per micro-batch × 16 accumulation steps × 1024 tokens = 524,288 tokens per optimizer step. (I verified the accumulated gradient is bit-for-bit equivalent to a single large batch — scaling the loss by 1/N and accumulating matches to ~1e-9.)
 
-The run took ~13 hours, held ~201K tokens/sec end-to-end (dataloader overhead was negligible — the loop is compute-bound), and drove training loss from 10.6 to 3.27. I checkpointed every 2000 steps, which — spoiler — turned out to be too coarse for one thing I wanted to see.
+The run took ~13 hours, held ~201K tokens/sec end-to-end (dataloader overhead was negligible — the loop is compute-bound), and drove training loss from 10.6 to 3.27.
+
+![Training and validation loss](/images/gpt2-loss-curve.png)
+
+The curve has the shape you'd expect: a near-vertical initial drop from ~10.6 (the random-init cross-entropy is roughly $\ln(50257) \approx 10.8$) as the model learns unigram/bigram statistics, then a long, slowly-flattening decay. Validation loss (measured on a held-out FineWeb-Edu slice) tracks training loss almost exactly — there's no overfitting gap, which is unsurprising for a single pass over 10B tokens where the model sees each token roughly once. I checkpointed every 2000 steps, which — spoiler — turned out to be too coarse for one thing I wanted to see.
 
 ## Does it actually reproduce GPT-2?
 
