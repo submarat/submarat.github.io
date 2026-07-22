@@ -16,21 +16,23 @@ A faithful GPT-2 run is ~10–300B tokens depending on which reproduction you ta
 
 The measurement harness runs the model on synthetic fixed-shape batches and reports training-step throughput and peak memory. Applied cumulatively on an H100 at the full GPT-2-small config (batch 8, seq 1024):
 
-| step | change | train tokens/sec | vs. previous |
-|---|---|---|---|
-| baseline | fp32 | 36,600 | — |
-| + tf32 | TF32 matmuls | 66,600 | **1.82×** |
-| + bf16 | bf16 autocast | 70,100 | 1.05× |
-| + sdpa | fused/flash attention | 107,100 | **1.53×** |
-| + compile | `torch.compile` | 163,900 | **1.53×** |
-| + fused AdamW | fused optimizer | 184,800 | 1.13× |
-| + weight tying | tie unembed to embed | 178,500 | ~1.0× |
+| step | change | train tokens/sec | vs. previous | peak mem (GB) |
+|---|---|---|---|---|
+| baseline | fp32 | 36,599 | — | 19.7 |
+| + tf32 | TF32 matmuls | 66,639 | **1.82×** | 19.7 |
+| + bf16 | bf16 autocast | 70,079 | 1.05× | 21.1 |
+| + sdpa | fused/flash attention | 107,060 | **1.53×** | 13.8 |
+| + compile | `torch.compile` | 163,923 | **1.53×** | 11.7 |
+| + fused AdamW | fused optimizer | 184,839 | 1.13× | 11.7 |
+| + cross-entropy | `F.cross_entropy` loss | 178,832 | 0.97× | 11.7 |
+| + weight tying | tie unembed to embed | 178,543 | ~1.0× | 11.2 |
 
-End to end: **~4.9× faster training**, from 36.6K to 178.5K tokens/sec, and a 43% cut in peak memory. A few things surprised me:
+End to end: **~4.9× faster training**, from 36.6K to 178.5K tokens/sec, and a 43% cut in peak memory (19.7 → 11.2 GB). A few things surprised me:
 
 - **TF32 was the single biggest win, and nearly free.** The fp32 baseline was doing matmuls off the tensor cores; one line — `torch.set_float32_matmul_precision("high")` — nearly doubled throughput. It keeps fp32's 8-bit exponent (full range) but truncates the mantissa to 10 bits for the multiply, accumulating in fp32. For training, that precision loss is irrelevant.
-- **bf16 on top of TF32 barely moved throughput** — TF32 was already using the tensor cores. Its real value is unlocking the flash-attention kernel and halving activation memory.
+- **bf16 on top of TF32 barely moved throughput** — TF32 was already using the tensor cores. Its real value is unlocking the flash-attention kernel (see the next row); on its own, peak memory actually ticked *up* here, because autocast keeps some fp32 copies around.
 - **SDPA and `torch.compile` were the two structural wins**, together roughly 2.3×, and they cut memory by not materializing the `[batch, heads, seq, seq]` attention-probability tensor.
+- **`cross-entropy` was neutral** — I swapped the hand-rolled `log_softmax`+gather loss for `F.cross_entropy` for numerical stability, not speed.
 - **Weight tying is a storage change, not a FLOPs change.** Tying the unembedding to the transposed embedding drops ~38M parameters (163M → 124.5M, matching real GPT-2) but the matmuls are identical, so throughput is flat. It's about parameter fidelity and freeing memory for a bigger batch, not speed.
 
 At ~200K tokens/sec, 10B tokens is about 14 hours on one H100. That's an overnight run, which made the whole experiment feasible.
