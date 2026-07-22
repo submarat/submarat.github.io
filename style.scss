@@ -656,3 +656,33 @@ footer {
 // ... Otherwise it really bloats up the top of the CSS file and makes it difficult to find the start
 @import "highlights";
 @import "svg-icons";
+
+// Markdown tables (the reset strips borders/spacing; restore them here)
+table {
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  font-size: 0.95em;
+  line-height: 1.4;
+  display: block;          // enables horizontal scroll on narrow screens
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+th,
+td {
+  border: 1px solid var(--theme-border);
+  padding: 0.5em 0.85em;
+  text-align: left;
+  vertical-align: top;
+}
+
+thead th {
+  background: var(--theme-code-bg);
+  font-weight: 600;
+  color: var(--theme-heading);
+}
+
+tbody tr:nth-child(even) td {
+  background: rgba(127, 127, 127, 0.06);
+}
