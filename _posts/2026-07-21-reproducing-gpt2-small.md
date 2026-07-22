@@ -76,7 +76,7 @@ That's a more useful outcome than a single matching number. The data choice didn
 
 ## Watching capabilities emerge
 
-Because I saved checkpoints throughout training, I could evaluate all ten of them and plot each metric against training tokens, with GPT-2 as a dashed reference:
+Because I saved checkpoints throughout training — [all ten are on the Hub](https://huggingface.co/submarat/gpt2-small-fineweb-edu-10b-checkpoints) — I could evaluate each of them and plot every metric against training tokens, with GPT-2 as a dashed reference:
 
 ![Capability emergence over training](/images/gpt2-capability-emergence.png)
 
@@ -115,7 +115,7 @@ A striking fact from the literature is that this phase change occurs at a *simil
 - **The training data is a design decision with a visible signature.** FineWeb-Edu didn't make a uniformly better or worse GPT-2 — it made a *differently-shaped* one, strong on knowledge and weak on narrative, and the emergence curves showed exactly where each ceiling came from.
 - **Checkpoints turn a training run into an experiment.** The capability-emergence and induction analyses were only possible because I saved intermediate weights — and the one thing I couldn't resolve (the induction bump) was purely a checkpoint-granularity problem, not a modeling one.
 
-Everything — the optimized training loop, the eval harness, and the analysis scripts — is [in the repo](https://github.com/submarat/gpt2-small-repro).
+Everything — the optimized training loop, the eval harness, and the analysis scripts — is [in the repo](https://github.com/submarat/gpt2-small-repro). The trained model is on the Hub as a ready-to-use [`GPT2LMHeadModel`](https://huggingface.co/submarat/gpt2-small-fineweb-edu-10b), and the [ten raw training checkpoints](https://huggingface.co/submarat/gpt2-small-fineweb-edu-10b-checkpoints) are published alongside it — so the capability-emergence and induction sweeps are fully reproducible.
 
 ## References
 
