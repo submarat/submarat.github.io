@@ -41,11 +41,6 @@
   --theme-highlight: rgba(255, 220, 0, 0.5);
 }
 
-[data-theme="dark"] .highlight {
-  background-color: var(--theme-code-bg);
-  border-color: var(--theme-border);
-}
-
 /* Chess modal */
 .chess-modal {
   position: fixed;
