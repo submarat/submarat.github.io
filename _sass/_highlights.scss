@@ -1,13 +1,23 @@
 
+// A paragraph consisting solely of italic text directly above a code block
+// acts as a caption/label for it.
+p > em:only-child {
+  display: block;
+  font-size: 0.85em;
+  color: var(--theme-text-muted);
+  margin-bottom: -0.5em;
+}
+
 .highlight {
   background-color: var(--theme-code-bg);
-  padding: 0.75em 1em;
+  padding: 0.85em 1.1em;
   border: 1px solid var(--theme-border);
-  border-radius: 4px;
+  border-left: 3px solid var(--theme-heading);
+  border-radius: 6px;
   margin: 1em 0;
   overflow-x: auto;
   font-size: 0.8em;
-  line-height: 1.4;
+  line-height: 1.6;
 }
 
 .highlight code {

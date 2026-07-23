@@ -30,6 +30,7 @@ The key difference from pretraining is the data: instead of broad internet text,
 
 One important practical detail: during SFT, you typically mask the loss on the instruction tokens and only compute loss on the response tokens. The implementation is straightforward — set labels to -100 for instruction positions, and the loss function ignores them:
 
+*Masking instruction tokens out of the loss*
 ```python
 input_ids = [instruction_tokens + response_tokens]
 labels = [-100] * len(instruction_tokens) + response_tokens
