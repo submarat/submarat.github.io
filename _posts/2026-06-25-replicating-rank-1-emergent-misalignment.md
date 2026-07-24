@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Replicating rank-1 emergent misalignment in Qwen2.5-14B"
-date: 2026-07-21
+date: 2026-06-25
 excerpt: "I replicated Turner et al.'s and Soligo et al.'s emergent misalignment results on 2x H100s: a single rank-1 LoRA adapter on one MLP layer, trained only on bad medical advice, induces broadly misaligned behavior on unrelated topics. Then extracted the mean-diff misalignment direction, steered the base model with it, and tried ablating it from the EM model — replicating the paper's near-orthogonality finding but getting a result that flatly contradicts its ablation claim."
 reading_time_minutes: 17
 ---

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Diffusion on a 2D spiral"
-date: 2026-07-23
+date: 2026-07-09
 excerpt: "A minimal from-scratch DDPM trained on a 2D spiral, animated to show random noise being denoised back onto the data manifold step by step — plus a side-by-side comparison of stochastic vs. deterministic sampling."
 reading_time_minutes: 4
 ---
