@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Accelerating up Qwen-Image-Edit 2511 by caching KV"
+title: "Faster Qwen-Image-Edit 2511 by caching KV"
 date: 2026-07-23
 excerpt: "Qwen-Image-Edit-2511 feeds a reference-image's VAE-encoded tokens through all 60 joint-attention blocks at every denoising step, discarding their own output every time. A per-block cosine-similarity study shows they're far more stable than they need to be recomputed from scratch — and a KV cache built on that finding gets a validated 1.3-1.7x speedup on 100 real edit tasks."
 reading_time_minutes: 12
