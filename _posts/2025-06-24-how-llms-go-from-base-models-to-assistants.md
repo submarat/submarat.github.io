@@ -56,7 +56,7 @@ Theory in hand, here's the effect on the real model. I fine-tuned the 124M base 
 | "What is the capital of France?" | drifts into a history-lesson-plan template | **"Paris"** |
 | "List three tips for staying focused while studying." | vague musing about reading | a numbered 3-item list |
 
-It still hallucinates — asked for a motivational quote it invented an attribution, *"— Paulo Freirer (2006)"* — but it's unmistakably following instructions now. The lesson: format and instruction-following are cheap to teach; factual reliability is not.
+It still hallucinates — asked for a motivational quote, it invented a plausible-looking attribution ("Paulo Freirer, 2006") — but it's unmistakably following instructions now. The lesson: format and instruction-following are cheap to teach; factual reliability is not.
 
 ### Practical training considerations
 
