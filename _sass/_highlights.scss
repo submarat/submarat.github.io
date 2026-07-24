@@ -1,7 +1,12 @@
 
 // A paragraph consisting solely of italic text directly above a code block
-// acts as a caption/label for it.
-p > em:only-child {
+// acts as a caption/label for it. Scope with :has(+ .highlight) so it only
+// applies to captions immediately above a code block — otherwise it would also
+// match any body paragraph whose lone *element* is an <em> (CSS :only-child
+// ignores text-node siblings), turning a single italicized word into a caption.
+// (selector interpolated so the Sass compiler emits it literally rather than
+// trying to parse the combinator inside :has())
+#{"p:has(+ .highlight) > em:only-child"} {
   display: block;
   font-size: 0.85em;
   color: var(--theme-text-muted);
