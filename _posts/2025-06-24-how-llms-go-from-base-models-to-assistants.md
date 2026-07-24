@@ -1,26 +1,28 @@
 ---
 layout: post
 title: "How LLMs go from base models to assistants"
-date: 2025-06-24
-excerpt: "Notes on how language models are transformed from raw next-token predictors into useful assistants. Covers the three main stages of post-training — supervised fine-tuning, reinforcement learning from human feedback, and direct preference optimization — along with practical details about tool calling and training dynamics."
-reading_time_minutes: 12
+date: 2026-07-23
+excerpt: "How language models are turned from raw next-token predictors into assistants — the three post-training stages (SFT, preference optimization, specialized/chat fine-tuning) — grounded in a worked example: I ran the whole pipeline on a 124M GPT-2 I trained from scratch. Includes real base→SFT→DPO→chat interactions and an in-browser demo you can try."
+reading_time_minutes: 16
 ---
 
-Notes I've accumulated from conversations with Claude while learning how language models are transformed from raw next-token predictors into useful assistants. This post covers the three main stages of post-training — supervised fine-tuning, reinforcement learning from human feedback, and direct preference optimization — along with practical details about tool calling and training dynamics that aren't always obvious from the papers.
+Notes I've accumulated while learning how language models are transformed from raw next-token predictors into useful assistants — now grounded in a **worked example**. I [trained a 124M GPT-2 from scratch](/reproducing-gpt2-small) on 10B tokens of FineWeb-Edu, then ran the canonical post-training pipeline on it: supervised fine-tuning, DPO, and a multi-turn chat fine-tune. It's a *toy* at 124M — shallow and it hallucinates — but every stage's effect is visible and instructive, which is the point.
+
+**[Try it in your browser →](https://huggingface.co/spaces/submarat/gpt2-fineweb-chat)** — the base, SFT, DPO, and chat models all run client-side (transformers.js), so you can watch the pipeline's effect first-hand. As always, worked out in conversation with Claude.
 
 ## The post-training pipeline
 
-A pretrained language model is essentially a document completer. It can produce fluent text, but it doesn't know how to follow instructions, refuse harmful requests, or call external tools. Post-training is the process that bridges this gap, and the three-stage pipeline was formalized by the InstructGPT work [[1]](#ref-1), typically in stages:
+A pretrained language model is essentially a document completer. It can produce fluent text, but it doesn't know how to follow instructions, refuse harmful requests, or call external tools. Post-training bridges this gap; the three-stage pipeline was formalized by the InstructGPT work [[1]](#ref-1):
 
 1. **Supervised fine-tuning (SFT)** teaches the model to follow instructions
 2. **Preference optimization** (RLHF or DPO) aligns the model's outputs with human judgments about quality
 3. **Specialized fine-tuning** for tool calling, multi-turn chat, or domain-specific behavior
 
-Each stage builds on the last. You can think of SFT as teaching the model the format and style of helpful responses, while preference optimization teaches it to distinguish between good and bad responses within that format.
+Each stage builds on the last. SFT teaches the format and style of helpful responses; preference optimization teaches the model to distinguish good responses from bad within that format.
 
 ## Supervised fine-tuning: same objective, different data
 
-SFT uses the exact same training objective as pretraining — next-token prediction with cross-entropy loss. For a target sequence with tokens (y₁, y₂, ..., yₙ), the loss is:
+SFT uses the exact same training objective as pretraining — next-token prediction with cross-entropy loss. For a target sequence with tokens (y₁, y₂, ..., yₙ):
 
 $$L = -\sum_{i=1}^{n} \log P(y_i \mid x, y_1, \ldots, y_{i-1})$$
 
@@ -28,7 +30,7 @@ The key difference from pretraining is the data: instead of broad internet text,
 
 ### Prompt masking matters
 
-One important practical detail: during SFT, you typically mask the loss on the instruction tokens and only compute loss on the response tokens. The implementation is straightforward — set labels to -100 for instruction positions, and the loss function ignores them:
+One important practical detail: during SFT you mask the loss on the instruction tokens and only compute loss on the response tokens:
 
 *Masking instruction tokens out of the loss*
 ```python
@@ -37,96 +39,104 @@ labels = [-100] * len(instruction_tokens) + response_tokens
 loss = cross_entropy(logits, labels, ignore_index=-100)
 ```
 
-Without this masking, the model wastes capacity learning to reproduce the prompt rather than learning to generate good responses. The model can still attend to the instruction tokens during the forward pass — they're only masked in the loss computation, not in attention.
+Without this masking, the model wastes capacity learning to reproduce the prompt rather than generate good responses. It can still attend to the instruction tokens during the forward pass — they're only masked in the loss, not in attention. (In the worked example I used TRL, where this is a one-flag switch: `completion_only_loss=True` on a prompt/completion dataset.)
 
 ### Cross-entropy and KL divergence: a subtle point
 
 Something that tripped me up: SFT's cross-entropy loss against a one-hot target is mathematically equivalent to minimizing KL divergence from that one-hot distribution to the model's output distribution. Since the entropy of a one-hot distribution is zero, D_KL(q ∥ p) = H(q, p) − H(q) = H(q, p). So cross-entropy and KL divergence collapse to the same thing.
 
-But when people say "KL divergence" in the fine-tuning literature, they usually mean comparing two soft distributions — a teacher model's logits against a student's (knowledge distillation), or a trained policy against a reference policy (DPO/RLHF regularization). The one-hot case is degenerate: you're maximizing likelihood of specific tokens, not matching a full distribution.
+But when people say "KL divergence" in the fine-tuning literature, they usually mean comparing two *soft* distributions — a teacher's logits against a student's (distillation), or a trained policy against a reference policy (DPO/RLHF regularization). The one-hot case is degenerate: you're maximizing likelihood of specific tokens, not matching a full distribution.
+
+### What SFT actually did
+
+Theory in hand, here's the effect on the real model. I fine-tuned the 124M base on [Alpaca-cleaned](https://huggingface.co/datasets/yahma/alpaca-cleaned) (~52k instruction-response pairs), completion-only loss, three epochs (~8 minutes on one H100). Instruction-following simply *appears*:
+
+| Prompt | Base (document completer) | After SFT (instruction follower) |
+|---|---|---|
+| "What is the capital of France?" | drifts into a history-lesson-plan template | **"Paris"** |
+| "List three tips for staying focused while studying." | vague musing about reading | a numbered 3-item list |
+
+It still hallucinates — asked for a motivational quote it invented an attribution, *"— Paulo Freirer (2006)"* — but it's unmistakably following instructions now. The lesson: format and instruction-following are cheap to teach; factual reliability is not.
 
 ### Practical training considerations
 
-A few things I've learned matter more than you'd expect:
+A few things that matter more than you'd expect:
 
-**Batching by sequence length** dramatically speeds up training compared to shuffling sequences of wildly different lengths, since shorter sequences in a batch waste compute on padding. You can group sequences by length and shuffle within groups to get most of the speed benefit while preserving some randomness in gradient estimates.
+**Batching by sequence length** speeds up training versus shuffling wildly different lengths, since short sequences waste compute on padding. Group by length and shuffle within groups.
 
-**Monitoring validation loss** is critical. Instruction datasets are often small relative to pretraining corpora, making overfitting a real concern. If your training loss drops to zero on some batches, that's a sign of memorization. When training loss hits zero, the model is predicting correct tokens with 100% confidence — possibly a sign of overfitting, though it can also happen with numerical precision issues on easy examples.
+**Monitoring validation loss** is critical — instruction datasets are small relative to pretraining corpora, so overfitting is a real concern. Training loss hitting zero is a memorization warning.
 
-**Context length mismatch** is an underappreciated problem. If you fine-tune a model with 32k context capability using only 1k-token examples, the model can lose its ability to handle longer contexts. Positional embeddings for positions beyond your training length become undertrained and drift. The practical fix is to pack multiple short examples into longer sequences (separated by special tokens) so the model maintains exposure to longer contexts.
+**Context-length mismatch** is underappreciated: fine-tune a 32k-context model on only 1k-token examples and it can lose long-context ability as high positions go undertrained. The fix is packing short examples into longer sequences.
 
 ## From SFT to preference optimization
 
-SFT gets you a model that produces responses in the right format, but it doesn't learn to distinguish between mediocre and excellent responses to the same prompt. That's where preference optimization comes in.
+SFT gets you a model that produces responses in the right format, but it doesn't learn to distinguish mediocre from excellent responses to the same prompt. That's preference optimization.
 
 ### RLHF: the original approach
 
-The classic RLHF pipeline has three stages:
-
-1. Start with an SFT model
-2. Train a separate reward model on human preference data (pairs of responses where humans indicate which is better)
-3. Use PPO (Proximal Policy Optimization) [[2]](#ref-2) to optimize the language model against the reward model, with a KL penalty to prevent it from drifting too far from the SFT model
-
-PPO's strengths include flexibility — it can work with any differentiable reward function, not just pairwise preferences — and online learning, where the model generates new responses and gets feedback on them during training. It also handles distribution shift better when the optimal policy is very different from the reference model.
-
-The downsides are well-known: PPO is computationally expensive, training is unstable, and the reward model can become a bottleneck that doesn't perfectly capture human preferences.
+The classic RLHF pipeline: (1) start with an SFT model, (2) train a reward model on human preference pairs, (3) use PPO [[2]](#ref-2) to optimize the LM against the reward model, with a KL penalty to prevent drift from the SFT model. PPO's strengths are flexibility (any differentiable reward) and online learning; its downsides are cost, instability, and the reward model as an imperfect bottleneck.
 
 ### DPO: cutting out the middleman
 
-DPO (Direct Preference Optimization) [[3]](#ref-3) reformulates preference learning as a classification task, eliminating the reward model and RL loop entirely. The key mathematical insight is a reparameterization that connects the optimal policy directly to the preference data.
+DPO [[3]](#ref-3) reformulates preference learning as classification, eliminating the reward model and RL loop. Given a prompt and two responses (preferred, dispreferred), its loss encourages higher probability on the preferred response relative to a reference model, via the Bradley-Terry model and a log-probability ratio scaled by β (which controls deviation from the reference). In practice it's simpler, cheaper, and more stable — the default for most alignment work today.
 
-Given a prompt and two responses (one preferred, one dispreferred), DPO's loss encourages the model to assign higher probability to the preferred response relative to a reference model. The loss uses the Bradley-Terry preference model and is computed on a per-token basis — it looks at log probability ratios between preferred and dispreferred completions, scaled by a hyperparameter β that controls how far the model can deviate from the reference.
+### What DPO actually did (and the alignment tax, in miniature)
 
-In practice, DPO is simpler to implement, more computationally efficient, and more stable during training. It has become the default choice for most preference-based alignment work.
+I ran DPO on top of the SFT model using [UltraFeedback](https://huggingface.co/datasets/HuggingFaceH4/ultrafeedback_binarized) (15k pairs). The training metrics did exactly what they should — the reward margin rose and the model preferred "chosen" ~63% of the time — and the *style* shifted toward longer, more elaborate, more "assistant-like" responses (the well-documented UltraFeedback length/verbosity preference).
+
+But here's the instructive part: **at 124M, verbosity isn't quality — it's more room to hallucinate.** On some prompts DPO *regressed*:
+
+| Prompt | After SFT | After DPO |
+|---|---|---|
+| "What is the capital of France?" | **"Paris"** ✓ | a long, confident paragraph about Belgium, Luxembourg, and Louis XIV ✗ |
+
+The SFT model gave the right one-word answer; the DPO model, optimized to *sound* more helpful, talked itself out of it. That's the **alignment tax / reward-vs-truth gap** — optimizing a preference proxy is not the same as improving correctness, especially when the base model lacks the capacity to back up the extra words. It's also a direct, if small, data point on two of the open questions I list below.
 
 ### When PPO still wins
 
-PPO retains advantages in a few scenarios: when you want to optimize for multiple distinct objectives simultaneously (helpfulness AND harmlessness AND honesty), when your reward signal isn't based on pairwise preferences, or when the optimal behavior is very different from the reference model's behavior. The additional complexity buys you flexibility.
+PPO keeps advantages when optimizing multiple objectives simultaneously (helpful AND harmless AND honest), when the reward isn't pairwise, or when optimal behavior is far from the reference. The extra complexity buys flexibility.
+
+## Specialized fine-tuning: multi-turn chat
+
+The single-turn SFT above (Alpaca is one instruction → one response) isn't a chatbot — it has no notion of a conversation. Stage 3 is where you teach conversational and tool-use behavior. For chat, that means: a **conversational dataset**, a **chat template** that encodes role-tagged turns, and **loss on the assistant turns** across the whole dialogue.
+
+I ran a separate SFT pass from the base model on [smol-smoltalk](https://huggingface.co/datasets/HuggingFaceTB/smol-smoltalk) (multi-turn, built for small models), with a ChatML-style template (`<|user|>` / `<|assistant|>`, each turn ending in EOS) and `assistant_only_loss`. The result holds a running conversation and references earlier turns:
+
+> **User:** Give me three tips for studying.
+> **Assistant:** *When you read your text, be sure to carefully listen with attention and focus on the words that are important…*
+> **User:** Can you expand on the first one?
+> **Assistant:** *While it's possible for readers to comprehend the first paragraph more effectively once they've read each other's sentences…*
+
+It picks up "the first one" and runs with it — genuine (if wobbly) use of context. With a 1024-token window and 124M parameters, coherence degrades fast, so it's a chatbot in *form*, not reliability. Still: base → SFT → DPO → chat, a full pipeline you can [poke at in the browser](https://huggingface.co/spaces/submarat/gpt2-fineweb-chat).
 
 ## Tool calling: teaching models to use external systems
 
-Tool calling is one of the more interesting fine-tuning challenges because it requires the model to learn structured output generation — producing valid JSON function calls with correct syntax, proper parameter extraction, and appropriate error handling.
+Tool calling is a harder specialized-fine-tuning task because it requires structured output — valid JSON function calls with correct syntax, parameter extraction, and error handling. Models are trained on tool-calling conversations: a request, a formatted tool call, the tool's response, and a final answer incorporating the result.
 
-### How tool calling training works
-
-Models are fine-tuned on datasets containing examples of tool-calling conversations: a human request, a properly formatted tool call, the tool's response, and the model's final answer incorporating the tool result. The model learns when to use tools, how to format calls correctly, and how to chain multiple tool calls together.
-
-### The smallest tool-calling models
-
-How small can a model be and still do tool calling? Research on TinyAgent [[4]](#ref-4) showed that a 1.1B parameter model achieved 78.89% success on function calling tasks after specialized fine-tuning — but the same model scored only 12.71% off the shelf. The 7B version reached 83.09%, actually beating GPT-4-Turbo's 79.08%.
-
-Key techniques that made small-model tool calling work included LoRA fine-tuning on 40k real-world examples, ToolRAG to select only relevant tools per query (reducing prompt size), and quantization for edge deployment. Below about 1B parameters, models appear to lack the representational capacity for reliable structured output generation.
-
-## Step-level credit assignment
-
-One research direction I found particularly interesting: using Q-value models to improve LLM agent decision-making [[5]](#ref-5). The core problem is that agents typically receive sparse rewards (only at task completion), making it hard to learn which intermediate actions were good or bad.
-
-The approach trains a separate Q-value model via step-level DPO — rather than comparing entire trajectories ("this sequence of actions succeeded, that one failed"), it compares individual actions at each step ("clicking product A here was better than clicking product B"). This granular credit assignment yields dramatically better results: 103% improvement on WebShop tasks, with enhanced agents outperforming GPT-4o-mini.
-
-One interesting implementation detail: the Q-value calculation at inference time requires both the trained model and the original reference model, since Q-values are computed as the difference in log probabilities between them. This means you're running three models at inference: the agent, the Q-value model, and the reference model — though the latter two can be small (1.3B parameters).
+How small can this go? TinyAgent [[4]](#ref-4) showed a 1.1B model reaching 78.89% on function-calling after specialized fine-tuning (vs. 12.71% off the shelf), and a 7B reaching 83.09% — beating GPT-4-Turbo's 79.08%. Key techniques: LoRA on 40k real examples, ToolRAG to select only relevant tools per query, and quantization for edge deployment. Below ~1B parameters, models seem to lack the capacity for reliable structured generation — which is exactly why my 124M toy stops at chat and doesn't attempt tools.
 
 ## What I'm still thinking about
 
-A few open questions from these explorations:
+- **How robust is preference optimization really?** DPO trains on a fixed dataset of pairs; if deployment differs, does it degrade gracefully? (My toy's regression on a factual prompt suggests "not always gracefully.")
+- **SFT quality vs. the alignment ceiling.** If SFT data has subtle errors, does preference optimization correct or amplify them? The DPO-verbosity result hints that preference signals can pull *away* from correctness when capacity is the binding constraint.
+- **Scaling laws for tool calling.** TinyAgent put the floor near 1.1B. Hard architectural limit, or can better data/curricula push it lower?
 
-**How robust is preference optimization really?** DPO trains on a fixed dataset of preference pairs. If the preference distribution in deployment differs from training, does the model degrade gracefully or catastrophically?
+These are best answered by running experiments rather than theorizing — which is why the worked example above exists, and why every model and script is public.
 
-**The relationship between SFT quality and alignment ceiling.** If your SFT data contains subtle errors or inconsistencies, does preference optimization correct for them, or does it amplify them?
+## Try it / resources
 
-**Scaling laws for tool calling.** TinyAgent [[4]](#ref-4) showed that 1.1B parameters is roughly the floor for reliable function calling. Is this a hard architectural limit, or could better training data and curricula push it lower?
-
-These are the kinds of questions that I think are best answered by actually running experiments rather than theorizing — which is part of why I'm documenting my learning process publicly.
+- **Demo:** [in-browser chat (base / SFT / DPO / multi-turn)](https://huggingface.co/spaces/submarat/gpt2-fineweb-chat)
+- **Models:** [base](https://huggingface.co/submarat/gpt2-small-fineweb-edu-10b) · [SFT](https://huggingface.co/submarat/gpt2-small-fineweb-edu-10b-sft) · [DPO](https://huggingface.co/submarat/gpt2-small-fineweb-edu-10b-dpo) · [chat](https://huggingface.co/submarat/gpt2-small-fineweb-edu-10b-chat)
+- **Code:** [gpt2-small-repro](https://github.com/submarat/gpt2-small-repro) (`posttraining/`) · **How the base model was trained:** [Reproducing GPT-2 Small](/reproducing-gpt2-small)
 
 ---
 
 ## References
 
-<a id="ref-1"></a>**[1]** Ouyang, L., Wu, J., Jiang, X., Almeida, D., Wainwright, C.L., Mishkin, P., Zhang, C., Agarwal, S., Slama, K., Ray, A., Schulman, J., Hilton, J., Kelton, F., Miller, L., Simens, M., Askell, A., Welinder, P., Christiano, P., Leike, J., & Lowe, R. (2022). *Training language models to follow instructions with human feedback.* NeurIPS 2022. [arXiv:2203.02155](https://arxiv.org/abs/2203.02155)
+<a id="ref-1"></a>**[1]** Ouyang, L., et al. (2022). *Training language models to follow instructions with human feedback.* NeurIPS 2022. [arXiv:2203.02155](https://arxiv.org/abs/2203.02155)
 
-<a id="ref-2"></a>**[2]** Schulman, J., Wolski, F., Dhariwal, P., Radford, A., & Klimov, O. (2017). *Proximal Policy Optimization Algorithms.* [arXiv:1707.06347](https://arxiv.org/abs/1707.06347)
+<a id="ref-2"></a>**[2]** Schulman, J., et al. (2017). *Proximal Policy Optimization Algorithms.* [arXiv:1707.06347](https://arxiv.org/abs/1707.06347)
 
-<a id="ref-3"></a>**[3]** Rafailov, R., Sharma, A., Mitchell, E., Ermon, S., Manning, C.D., & Finn, C. (2023). *Direct Preference Optimization: Your Language Model is Secretly a Reward Model.* NeurIPS 2023. [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
+<a id="ref-3"></a>**[3]** Rafailov, R., et al. (2023). *Direct Preference Optimization: Your Language Model is Secretly a Reward Model.* NeurIPS 2023. [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
 
-<a id="ref-4"></a>**[4]** Erdogan, L.E., Lee, N., Jha, S., Kim, S., Tabrizi, R., Moon, S., Hooper, C., Anumanchipalli, G., Keutzer, K., & Gholami, A. (2024). *TinyAgent: Function Calling at the Edge.* EMNLP 2024 Demo. [arXiv:2409.00608](https://arxiv.org/abs/2409.00608)
-
-<a id="ref-5"></a>**[5]** Zhai, Y., Yang, T., Xu, K., Feng, D., Yang, C., Ding, B., & Wang, H. (2024). *Enhancing Decision-Making for LLM Agents via Step-Level Q-Value Models.* AAAI 2025. [arXiv:2409.09345](https://arxiv.org/abs/2409.09345)
+<a id="ref-4"></a>**[4]** Erdogan, L.E., et al. (2024). *TinyAgent: Function Calling at the Edge.* EMNLP 2024 Demo. [arXiv:2409.00608](https://arxiv.org/abs/2409.00608)
