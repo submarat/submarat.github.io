@@ -2,7 +2,7 @@
 layout: post
 title: "A toy assistant: SFT and DPO on my from-scratch GPT-2"
 date: 2026-07-23
-excerpt: "I took the 124M GPT-2 I trained from scratch and ran the canonical post-training pipeline on it — supervised fine-tuning on Alpaca, then DPO on UltraFeedback. SFT gave a dramatic jump to instruction-following; DPO made it 'sound' more like an assistant while demonstrating the alignment tax in miniature. There's an in-browser demo."
+excerpt: "I took the 124M GPT-2 I trained from scratch and ran the canonical post-training pipeline on it — supervised fine-tuning on Alpaca, then DPO on UltraFeedback, plus a multi-turn chat variant. SFT gave a dramatic jump to instruction-following; DPO made it 'sound' more like an assistant while demonstrating the alignment tax in miniature. There's an in-browser demo you can chat with."
 reading_time_minutes: 8
 ---
 
@@ -47,14 +47,29 @@ Here's the catch, and the most interesting result of the whole exercise: **at 12
 
 The SFT model gave the right one-word answer; the DPO model, optimized to be more elaborate and "helpful-sounding," talked itself out of it. That's the **alignment tax / reward-vs-truth gap** you read about in the RLHF literature, reproduced here on a tiny model you can train in an afternoon: making a model *sound* more aligned to a preference is not the same as making it *more correct*, especially when the base model lacks the capacity to back up the extra words.
 
+## Making it multi-turn
+
+Both models above are single-turn — Alpaca is one instruction → one response, with no notion of a conversation. To get an actual (toy) chatbot, I ran a separate SFT pass on a *conversational* dataset, [smol-smoltalk](https://huggingface.co/datasets/HuggingFaceTB/smol-smoltalk) (built for small models), using a ChatML-style chat template and `assistant_only_loss` — so the loss falls on every assistant turn across a multi-turn dialogue and the model learns the turn boundaries (`<|user|>` / `<|assistant|>`, each turn ending in EOS).
+
+It does hold a running conversation and reference earlier turns:
+
+> **User:** Give me three tips for studying.
+> **Assistant:** *When you read your text, be sure to carefully listen with attention and focus on the words that are important…*
+> **User:** Can you expand on the first one?
+> **Assistant:** *While it's possible for readers to comprehend the first paragraph more effectively once they've read each other's sentences…*
+
+Notice it picks up "the first one" and runs with it — real (if wobbly) use of context. But with a 1024-token window and 124M parameters, coherence degrades fast and it hallucinates freely; it's a chatbot in *form*, not in reliability. The multi-turn model is [gpt2-small-fineweb-edu-10b-chat](https://huggingface.co/submarat/gpt2-small-fineweb-edu-10b-chat), and it's the default in the [in-browser demo](https://huggingface.co/spaces/submarat/gpt2-fineweb-chat).
+
 ## Takeaways
 
 - **SFT is where the transformation happens.** A near-instant jump from "document completer" to "instruction follower," using the same objective as pretraining.
 - **DPO changes style, and style ≠ substance.** It reliably shifted the model toward longer, more assistant-like output — and just as reliably exposed that a 124M model has nothing to fill that extra length with but confident guesses.
 - **Watching the alignment tax happen** on a model small enough to fully understand is worth more than reading about it. The reward metric went up; the answers, on balance, did not.
 
-For a usable toy, the **SFT** model is the one to reach for. Both are on the Hub:
+For a single-turn instruction-follower, reach for the **SFT** model; to actually chat, use the multi-turn **chat** model. All are on the Hub:
 [SFT](https://huggingface.co/submarat/gpt2-small-fineweb-edu-10b-sft) ·
 [DPO](https://huggingface.co/submarat/gpt2-small-fineweb-edu-10b-dpo) ·
-[base](https://huggingface.co/submarat/gpt2-small-fineweb-edu-10b), with all the training code in
-[the repo](https://github.com/submarat/gpt2-small-repro) under `posttraining/`.
+[chat](https://huggingface.co/submarat/gpt2-small-fineweb-edu-10b-chat) ·
+[base](https://huggingface.co/submarat/gpt2-small-fineweb-edu-10b) — with all the training code in
+[the repo](https://github.com/submarat/gpt2-small-repro) under `posttraining/`, and an
+[in-browser demo](https://huggingface.co/spaces/submarat/gpt2-fineweb-chat) to try them.
