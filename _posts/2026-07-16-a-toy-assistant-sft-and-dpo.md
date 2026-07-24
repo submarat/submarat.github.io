@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "A toy assistant: SFT and DPO on my from-scratch GPT-2"
-date: 2026-07-23
+date: 2026-07-16
 excerpt: "I took the 124M GPT-2 I trained from scratch and ran the canonical post-training pipeline on it — supervised fine-tuning on Alpaca, then DPO on UltraFeedback, plus a multi-turn chat variant. SFT gave a dramatic jump to instruction-following; DPO made it 'sound' more like an assistant while demonstrating the alignment tax in miniature. There's an in-browser demo you can chat with."
 reading_time_minutes: 8
 ---

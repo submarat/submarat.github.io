@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Scaling up a DiT: replicating Peebles & Xie, then optimizing the training loop"
-date: 2026-07-24
+date: 2026-07-23
 excerpt: "Went from a toy 2D spiral DDPM to a 130M-parameter class-conditional Diffusion Transformer on full ImageNet-1k, then found an 8.3x training speedup with TF32 + bf16 + torch.compile — turning a 4-day full replication into an overnight one."
 reading_time_minutes: 6
 ---

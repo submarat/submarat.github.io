@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Reproducing GPT-2 Small: training, evaluating, and watching induction heads form"
-date: 2026-07-02
+date: 2026-06-25
 excerpt: "I trained a 124M GPT-2 from scratch on 10B tokens of FineWeb-Edu on a single H100, benchmarked it against the real GPT-2, and traced how its capabilities — including an induction head — emerged over training. Notes on making the training practical, what the data choice did to the model, and where a from-scratch repro stops feeling like a demo."
 reading_time_minutes: 15
 ---
