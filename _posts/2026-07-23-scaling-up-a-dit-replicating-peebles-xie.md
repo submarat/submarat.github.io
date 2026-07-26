@@ -2,8 +2,8 @@
 layout: post
 title: "Scaling up a DiT: replicating Peebles & Xie, then optimizing the training loop"
 date: 2026-07-23
-excerpt: "Went from a toy 2D spiral DDPM to a 130M-parameter class-conditional Diffusion Transformer on full ImageNet-1k, then found an 8.3x training speedup with TF32 + bf16 + torch.compile — turning a 4-day full replication into an overnight one."
-reading_time_minutes: 6
+excerpt: "Went from a toy 2D spiral DDPM to a 130M-parameter class-conditional Diffusion Transformer on full ImageNet-1k, found an 8.3x training speedup with TF32 + bf16 + torch.compile, and completed the paper's full 400K-step schedule in ~24.6 hours instead of 4 days."
+reading_time_minutes: 7
 ---
 
 Following up on the [2D spiral diffusion post](/reverse-diffusion-on-a-2d-spiral/): the natural next step was scaling the same ideas up to a real architecture on real images — Peebles & Xie's [Scalable Diffusion Models with Transformers](https://arxiv.org/abs/2212.09748) (DiT), the paper that popularized replacing a diffusion U-Net with a plain transformer. Built in conversation with Claude.
@@ -44,6 +44,16 @@ Raw and EMA weights are complementary at this point rather than one being strict
 
 **8.31x cumulative**, no FlashAttention-3 required — PyTorch's built-in `scaled_dot_product_attention` already gets a fused-kernel benefit once the activations are bf16, without installing anything extra. TF32 and bf16 were the two big individual wins (as they were for GPT-2), fused AdamW was noise, and `torch.compile` — which I hadn't tried on the earlier GPT-2 pass — added another clean 1.83x on top from kernel fusion.
 
-The practical effect: the full 400K-step schedule goes from **~4 days to ~11.7 hours.** That turns "technically possible but impractical" into an overnight run, which is exactly what's happening as I write this — training is continuing from the 50K checkpoint toward the full paper schedule with the optimized loop.
+The practical effect: the full 400K-step schedule goes from **~4 days to ~11.7 hours.** That turns "technically possible but impractical" into an overnight run.
 
-I'll follow up once it finishes.
+## Full 400K schedule, complete
+
+Training continued from the 50K checkpoint through the remaining 350K steps with the optimized loop (~11.9 hours), on top of the original 50K unoptimized (~12.7 hours) — full paper-matching schedule done in about a day of wall-clock time instead of four. Same 8 preview classes, same guidance scale (1.5), raw weights on top and EMA on the bottom:
+
+![DiT-B/2 samples at the full 400K steps, raw vs EMA weights](/images/dit-imagenet/final400k_labeled.png)
+
+This is a clear step up from the 50K checkpoint, not just "still noisy but less so." Flamingo and zebra are now full recognizable *scenes* — flamingos standing in water with correct posture, two zebras in a grassy field with correctly-shaped stripes — not just texture in roughly the right colors. Golden retriever, the one class that was a flat, undifferentiated blob at every single checkpoint I sampled up through 50K, is now a clean, well-formed dog face in both raw and EMA weights. Tiger shows correct fur/stripe patterning. Cheeseburger and pizza are the weakest of the eight, but still clearly food-shaped with layered structure, not abstract color fields.
+
+Consistent with the paper's own numbers: DiT-B/2 at 400K steps is documented in their scaling table at FID ≈ 40s (without classifier-free guidance) — a meaningfully smaller model than their DiT-XL/2 flagship (675M params, FID ≈ 19-20 at the same 400K steps, and the ~2.27 headline number after ~7M steps with tuned guidance). So "correct semantics, visible roughness" is the expected ceiling for this exact config and schedule, not a shortfall — and that's what the samples above show.
+
+Total for this replication: 130.7M-param DiT-B/2, full ImageNet-1k (1.28M images, all 1000 classes), full 400K-step paper-matching schedule, in ~24.6 hours of wall-clock time on one H100.
