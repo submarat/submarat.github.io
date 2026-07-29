@@ -71,3 +71,50 @@ Root cause: our training loop never had **gradient clipping**. The paper's own r
 The expensive part of this lesson: the training script only ever kept a **single, overwritten "latest" checkpoint.** By the time the divergence was confirmed, several post-divergence checkpoints had already overwritten the last good one — there was no clean rollback point left on disk. Full restart required.
 
 Fix, before restarting: `clip_grad_norm_` at 1.0, logging the per-step max gradient norm (so a future spike is visible immediately rather than requiring a loss-curve archaeology exercise after the fact), and permanent, non-overwritten checkpoint archives every 10,000 steps. Training is running again from scratch as I write this, back to the full 400K-step schedule.
+
+## Solid-black samples, guidance scale, and why it isn't collapse
+
+Partway through the restarted (gradient-clipped) run, a different alarm went off: some of the auto-saved preview images showed entire classes as solid black or a flat single color — not "dark and moody," literally uniform, saturated pixel values. Given the recent divergence story, the obvious first worry was round two.
+
+It wasn't training. Loss and per-step gradient norms stayed exactly where they should throughout (~0.26, grad norms 0.03–0.14, comfortably under the clip threshold). The issue was entirely in how the fixed 8-class preview grid samples at one fixed classifier-free-guidance scale.
+
+Sampling tench and goldfish from the same checkpoint (step 134,000) across guidance scales:
+
+| guidance | tench mean pixel value | goldfish mean pixel value |
+|---|---|---|
+| 1.0 | 17.8 | 56.7 |
+| 1.5 | 103.4 | 7.9 |
+| 2.0 | 75.6 | 0.0 |
+| 4.0 | 84.1 | 0.0 |
+
+Goldfish saturates to a literal 0.0 mean once guidance climbs past 1.5 — classic CFG over-extrapolation. Ho & Salimans' original [classifier-free guidance](https://arxiv.org/abs/2207.12598) paper frames the guidance scale as a mode-coverage/fidelity dial, in the same spirit as low-temperature or truncated sampling elsewhere; push it too far past 1.0 for a given class and the extrapolated score can leave the region the network was actually trained on. Google's [Imagen paper](https://arxiv.org/abs/2205.11487) documents the resulting failure mode directly: because training pixel values are scaled to `[-1, 1]`, a high guidance weight can push network outputs outside that range at a given timestep, causing saturated, blown-out images — a train-test mismatch. Their fix, dynamic thresholding, pulls extreme intensities back inward at every sampling step rather than just clamping at the end. Lowering the preview guidance scale from 4.0 (used throughout the XL run so far) to 1.5 (what worked well for the B/2 results earlier) looked like the obvious fix.
+
+It wasn't. From a later checkpoint (step 228,000), the same sweep on tiger and zebra:
+
+| guidance | tiger | zebra |
+|---|---|---|
+| 1.0 | solid black | excellent |
+| 1.5 | solid black | excellent |
+| 2.0 | solid black | excellent |
+| 4.0 | excellent | oversaturated/glitchy |
+
+Exactly the opposite pattern. Tiger needs guidance 4.0 to escape black-collapse; zebra needs guidance ≤2.0 to avoid the same fate. There is no single fixed guidance scale that keeps every class in a fixed preview grid looking good at any given point in training — it shifts by class and by checkpoint. Chasing it by editing one constant just relocates the failure to a different class rather than fixing anything, so the "fix" was understood as a wash and training was left running untouched — the guidance scale constant only affects the cosmetic preview-sampling code, not the training loop itself.
+
+The sharper question was whether tiger's black-collapse at low guidance meant the model didn't actually understand the class, or something narrower. Fixing guidance at 1.0 — literally the model's raw class-conditional prediction, no CFG extrapolation involved at all — and sweeping the sampling seed instead:
+
+| seed | mean pixel value | result |
+|---|---|---|
+| 0 | 0.0 | solid black |
+| 1 | 30.3 | recognizable tiger |
+| 2 | 84.4 | good tiger portrait |
+| 3 | 0.0 | solid black |
+| 4 | 176.7 | tiger, bright |
+| 5 | 0.0 | solid black |
+
+Half the seeds produce a perfectly legible tiger with zero guidance help at all. The model has the concept; what's failing is specific reverse-diffusion trajectories, not the class conditioning itself. That points at a structural gap in the sampler, not the model: `p_sample_step` never clamps the predicted `x0` (or `x_t`) at any of its 1000 sequential steps, so a trajectory that drifts even slightly off the data manifold — more likely for a class that's still mid-training — has nothing pulling it back, and can walk all the way to a saturated extreme over the remaining steps.
+
+This particular gap has a name in the literature: **exposure bias**, the train/sample mismatch where the model only ever sees ground-truth `x_t` during training but has to condition on its own (imperfect) previous outputs during sampling, so small errors compound across the chain. Ning et al.'s ["Input Perturbation Reduces Exposure Bias in Diffusion Models"](https://arxiv.org/abs/2301.11706) (ICML 2023) shows this explicitly — longer sampling chains produce measurably larger errors — and draws the direct parallel to exposure bias in autoregressive text generation. Their follow-up, ["Elucidating the Exposure Bias in Diffusion Models"](https://arxiv.org/abs/2308.15321) (ICLR 2024), frames it as variance accumulating over the chain and proposes a training-free rescaling fix. Karras et al.'s ["Elucidating the Design Space of Diffusion-Based Generative Models"](https://arxiv.org/abs/2206.00364) (EDM, NeurIPS 2022) makes the same point from the ODE/SDE side: sampling is a discretization of a continuous trajectory, and truncation error compounds with the number and spacing of the discrete steps taken. Every one of these treats the fix as sampler-side, not model-side — which matches what the seed sweep shows here: the same trained weights, with a better-behaved sampling procedure, would very plausibly stop losing half its tiger samples to black. `x0`-clamping (the static-thresholding convention used in the [Improved DDPM](https://arxiv.org/abs/2102.09672) and [ADM](https://arxiv.org/abs/2105.05233) codebases, `clip_denoised=True`) is the direct, low-effort version of this fix and is still on the to-do list for this sampler.
+
+Classifier-free guidance's extrapolation turns out to double as an accidental rescue mechanism here — pushing the trajectory harder toward the class manifold at each step is often enough to pull a would-be-collapsed sample back from the edge, even though that's not what CFG was designed for.
+
+It's a useful point of contrast with autoregressive language models, which don't fail this particular way. AR sampling draws from a softmax over a fixed, bounded vocabulary at every step — however bad the upstream hidden state gets, the output distribution is always valid and normalized, so there's no way for a token to numerically diverge. Diffusion sampling instead performs hundreds to thousands of sequential updates to a continuous, unbounded vector with no renormalization step, so drift is free to compound across the whole chain — exactly the exposure-bias mechanism above. LLMs do have a structurally analogous degenerate mode — repetition collapse under greedy or beam-search decoding, the failure Holtzman et al. named ["neural text degeneration"](https://arxiv.org/abs/1904.09751) (ICLR 2020) ("the the the the…") — and it's fixed the same way conceptually: nucleus/top-p sampling reshapes the distribution to avoid the degenerate attractor, the same role CFG's extrapolation plays here by accident.
