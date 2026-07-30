@@ -117,7 +117,7 @@ result from an actual caching schedule.
 Ran 100 real (image, instruction) pairs sampled from
 [MagicBrush](https://huggingface.co/datasets/osunlp/MagicBrush) — its own held-out
 human-verified eval split plus a random top-up — through four conditions at 28 steps: a
-true no-cache baseline, two CM5-style global schedules (`uniform_5`: refresh every 5 steps;
+true no-cache baseline, two global schedules (`uniform_5`: refresh every 5 steps;
 `uniform_10`: every 10), and the depth-aware `adaptive` schedule the study above motivated
 (block 0 cached forever, blocks 1-25/50-59 refresh every 10 steps, blocks 26-49 never
 cached).
@@ -182,7 +182,7 @@ content-adding edits rather than style/color changes.
   than raw throughput; a blind uniform schedule is worth it if the reverse is true.
 - This is a research prototype, monkeypatched onto a standalone `diffusers` install, tested
   at one resolution regime on 100 images on a single H100. Sensitivity to resolution/aspect
-  ratio (which mattered a lot for the equivalent CM5 study) is still open.
+  ratio (which mattered a lot in an earlier internal cache study) is still open.
 
 Everything — the study script, the cache, both eval harnesses, the benchmark builder, and
 the raw results — is [on GitHub](https://github.com/submarat/qwen-image-edit-kv-cache).
