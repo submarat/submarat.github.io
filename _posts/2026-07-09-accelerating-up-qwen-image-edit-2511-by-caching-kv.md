@@ -186,3 +186,22 @@ content-adding edits rather than style/color changes.
 
 Everything — the study script, the cache, both eval harnesses, the benchmark builder, and
 the raw results — is [on GitHub](https://github.com/submarat/qwen-image-edit-kv-cache).
+
+## Citation
+
+Please cite this work as:
+
+Subkhankulov, Marat. "Faster Qwen-Image-Edit 2511 by caching KV". submarat.github.io (Jul 2026). https://submarat.github.io/accelerating-up-qwen-image-edit-2511-by-caching-kv/
+
+Or use the BibTeX citation:
+
+```
+@article{subkhankulov2026faster,
+  title   = {Faster Qwen-Image-Edit 2511 by caching KV},
+  author  = {Subkhankulov, Marat},
+  journal = {submarat.github.io},
+  year    = {2026},
+  month   = {July},
+  url     = "https://submarat.github.io/accelerating-up-qwen-image-edit-2511-by-caching-kv/"
+}
+```
