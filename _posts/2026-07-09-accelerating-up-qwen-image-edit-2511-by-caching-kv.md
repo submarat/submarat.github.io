@@ -196,7 +196,7 @@ Subkhankulov, Marat. "Faster Qwen-Image-Edit 2511 by caching KV". submarat.githu
 Or use the BibTeX citation:
 
 ```
-@article{subkhankulov2026faster,
+@article{subkhankulov2026fasterqwen,
   title   = {Faster Qwen-Image-Edit 2511 by caching KV},
   author  = {Subkhankulov, Marat},
   journal = {submarat.github.io},
