@@ -6,7 +6,7 @@ excerpt: "With 30M residual-stream activations on disk, I trained a TopK sparse 
 reading_time_minutes: 9
 ---
 
-In the [last post](/collecting-activations-for-an-sae-roofline-and-a-writer) I built the boring-but-necessary plumbing: 30M residual-stream activations from gpt2-xl at `blocks.7.hook_resid_post`, packed into shards on disk. This post is the payoff — training a sparse autoencoder on those vectors and then doing the thing that makes interpretability feel real: finding a feature by what it *correlates* with, then *causally* forcing it and watching the model obey. As before, this was worked out with Claude alongside me.
+In the [last post](/collecting-activations-for-an-sae-roofline-and-a-writer) I built the boring-but-necessary plumbing: 30M residual-stream activations from gpt2-xl at `blocks.7.hook_resid_post`, packed into shards on disk. This post is the payoff — training a sparse autoencoder on those vectors and then doing the thing that makes interpretability feel real: finding a feature by what it *correlates* with, then *causally* forcing it and watching the model obey. The code for both stages is [on GitHub](https://github.com/submarat/activation_capture). As before, this was worked out with Claude alongside me.
 
 ## Why an SAE, and why TopK
 

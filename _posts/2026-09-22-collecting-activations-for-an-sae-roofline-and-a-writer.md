@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Collecting activations for an SAE: a roofline, a writer, and a profiler off its pedestal"
+title: "Collecting activations for an SAE: a roofline, a writer, and a profiling pass"
 date: 2026-09-22
 excerpt: "Before you can train a sparse autoencoder you need a few tens of millions of residual-stream activations on disk. Building that pipeline turned into a small tour of practical GPU performance: a roofline that says 'stop at batch 32', a writer rewrite that doubled throughput, and torch.profiler quietly answering every question I was going to point nsys at."
 reading_time_minutes: 13
@@ -8,7 +8,7 @@ reading_time_minutes: 13
 
 The next thing I want to do is train a sparse autoencoder (SAE) on GPT-2's residual stream. But an SAE trainer is boring in the best way: it's an autoencoder, so it doesn't care about labels, prompts, or order — it just wants a big pile of activation vectors to reconstruct. So step zero is unglamorous plumbing: run a model over a few thousand prompts, grab the residual stream at one layer, and get tens of millions of vectors onto disk in a form the trainer can shuffle through.
 
-I've done activation collection before (for an emergent-misalignment replication), so I expected to move fast. I did — but the interesting part wasn't the collection, it was that building it well forced me to answer three performance questions I usually hand-wave: *what batch size, and how do I know? is this compute- or IO-bound? and where is the time actually going?* This post is the answer to all three, worked out empirically on a single H100. As with [my GPT-2 repro](/reproducing-gpt2-small) and [post-training notes](/how-llms-go-from-base-models-to-assistants), a lot of it was worked out in conversation with Claude.
+I've done activation collection before (for an emergent-misalignment replication), so I expected to move fast. I did — but the interesting part wasn't the collection, it was that building it well forced me to answer three performance questions I usually hand-wave: *what batch size, and how do I know? is this compute- or IO-bound? and where is the time actually going?* This post is the answer to all three, worked out empirically on a single H100. The code is [on GitHub](https://github.com/submarat/activation_capture). As with [my GPT-2 repro](/reproducing-gpt2-small) and [post-training notes](/how-llms-go-from-base-models-to-assistants), a lot of it was worked out in conversation with Claude.
 
 The target: gpt2-xl (1.5B, 48 layers, d_model 1600), residual stream at one hook point, ~30M tokens, written as shards ready for SAE training. Artificially cap myself at 100 GB CPU RAM and 200 GB disk to keep the design decisions honest.
 
@@ -72,9 +72,9 @@ The fix is the standard double-buffered producer/consumer, done properly:
 
 Result on the full 30M-token run: **256 s → 102 s**, 117k → **295k tok/s**, a 2.5× speedup, with byte-identical output and resumability intact. The `put` stall went from 31% to ~1%. The bottleneck moved back onto the forward, which is where you want it.
 
-## Taking nsys off the pedestal
+## Profiling: understanding where the time goes
 
-I'd been meaning to do a "real" profiling pass with Nsight Systems for a while — it has an undeniable hacker mystique. Then I actually asked what I wanted to *learn* — where does the 47%-of-peak compute go, and what are those kernels — and it turned out `torch.profiler` answered all of it in one five-second run, and nsys wasn't even installed.
+I'd been meaning to do a "real" profiling pass with Nsight Systems for a while. Then I actually asked what I wanted to *learn* — where does the 47%-of-peak compute go, and what are those kernels — and it turned out `torch.profiler` answered all of it in one five-second run, and nsys wasn't even installed.
 
 The kernel table, after compile, split the compute cleanly: **GEMM ~50%** (the matmuls), **fused elementwise/LayerNorm/GELU ~32%**, **flash-attention ~18%**. Three things fell out of that for free:
 
@@ -82,7 +82,7 @@ The kernel table, after compile, split the compute cleanly: **GEMM ~50%** (the m
 2. **The fusion win is real but has a floor.** The elementwise ops are already collapsed into single `triton_poi_fused_add_mul_pow_tanh` (that's GELU) and `triton_red_fused_layer_norm` kernels — few launches, few HBM passes, which is *why* eager→compile gave 34%→47%. But they still cost ~32% of compute, because they're intrinsically bandwidth-bound: streaming a `[32768, 1600]` tensor through HBM to do almost no arithmetic. You can't fuse that to zero; I'd already hit the floor.
 3. **A live demonstration of the writer lesson.** My throwaway profiling script used a plain `.to("cpu")`, and the profiler instantly flagged `Memcpy DtoH (Device → Pageable)` eating the majority of GPU-attributed time — the exact anti-pattern the pinned-buffer + copy-stream design exists to avoid.
 
-The one question `torch.profiler` *can't* answer is the precise cost of that d=1600 tile misalignment — for the fractional "waves per SM" number you do need `ncu` on a single `nvjet` kernel. That's the genuinely irreducible use of the heavy tools: not "where does time go" (aggregate profilers nail that), but "open this one kernel down to occupancy and SASS." nsys's real niche is similarly narrow — a *suspected* serialization or overlap bug you can't see in aggregate — which is exactly the class of bug I'd already fixed by construction. So it stays in the box, and `torch.profiler` is the reflex. Pedestal dismantled.
+The one question `torch.profiler` *can't* answer is the precise cost of that d=1600 tile misalignment — for the fractional "waves per SM" number you do need `ncu` on a single `nvjet` kernel. That's the genuinely irreducible use of the heavy tools: not "where does time go" (aggregate profilers nail that), but "open this one kernel down to occupancy and SASS." nsys's real niche is similarly narrow — a *suspected* serialization or overlap bug you can't see in aggregate — which is exactly the class of bug I'd already fixed by construction. So `torch.profiler` is the reflex, and I reach for the heavier tools only for the one question they uniquely answer.
 
 ## What's on disk, and what's next
 
