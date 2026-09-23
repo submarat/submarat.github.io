@@ -74,7 +74,7 @@ Result on the full 30M-token run: **256 s → 102 s**, 117k → **295k tok/s**, 
 
 ## A correction: we *are* a little disk-bound, and I could prove it
 
-I originally waved this away — "the sustained write rate is ~375 MB/s, far under NVMe, so the disk never gates us." A reader (thanks, Marat) pushed on exactly the right question: *are we actually monitoring for the case where all buffers are in flight?* We weren't. So I instrumented it: per-batch D2H throughput (timed with CUDA events on the copy stream, so no host sync and no GIL contention), per-shard disk-write throughput, and — the key one — the time the main thread spends blocked in `self._free.get()` waiting for a buffer the saver hasn't returned yet. That last number is the unambiguous "disk can't keep up" signal.
+I originally waved this away — "the sustained write rate is ~375 MB/s, far under NVMe, so the disk never gates us." Then I made myself ask the question I'd skipped: *are we actually monitoring for the case where all buffers are in flight?* We weren't. So I instrumented it: per-batch D2H throughput (timed with CUDA events on the copy stream, so no host sync and no GIL contention), per-shard disk-write throughput, and — the key one — the time the main thread spends blocked in `self._free.get()` waiting for a buffer the saver hasn't returned yet. That last number is the unambiguous "disk can't keep up" signal.
 
 ![Data rates during activation capture: D2H vs host-to-disk, with backpressure](/images/sae-activations/data_rates.png)
 
