@@ -67,10 +67,20 @@ So ~50% of wall time was the copy/writer path blocking the forward — exactly t
 The fix is the standard double-buffered producer/consumer, done properly:
 
 - **Preallocated pinned shard buffers.** Each batch's D2H lands *directly* into a slice of the current shard buffer — no intermediate tensor, no `torch.cat` ever.
-- **A background saver on the other buffer.** When one buffer fills it's handed to a writer thread that saves it (`tmp → fsync → rename`) while the main thread keeps filling the second buffer. The producer only blocks if *all* buffers are in flight — i.e. the disk genuinely can't keep up, which it can't here (the sustained write rate is ~375 MB/s, far under NVMe).
+- **A background saver on the other buffer.** When one buffer fills it's handed to a writer thread that saves it (`tmp → fsync → rename`) while the main thread keeps filling the second buffer. The producer only blocks if *all* buffers are in flight — i.e. the disk can't keep up. I assumed that never happened here; it turns out it does, a bit, and the next section is me measuring it instead of assuming.
 - **A dedicated CUDA copy stream.** The D2H runs `non_blocking` on a side stream so the *next forward overlaps the copy*. Correctness needs care: `record_stream` keeps the GPU source buffer alive until the copy finishes, and a per-shard CUDA event makes the saver wait until every async copy has landed before it serializes the buffer.
 
 Result on the full 30M-token run: **256 s → 102 s**, 117k → **295k tok/s**, a 2.5× speedup, with byte-identical output and resumability intact. The `put` stall went from 31% to ~1%. The bottleneck moved back onto the forward, which is where you want it.
+
+## A correction: we *are* a little disk-bound, and I could prove it
+
+I originally waved this away — "the sustained write rate is ~375 MB/s, far under NVMe, so the disk never gates us." A reader (thanks, Marat) pushed on exactly the right question: *are we actually monitoring for the case where all buffers are in flight?* We weren't. So I instrumented it: per-batch D2H throughput (timed with CUDA events on the copy stream, so no host sync and no GIL contention), per-shard disk-write throughput, and — the key one — the time the main thread spends blocked in `self._free.get()` waiting for a buffer the saver hasn't returned yet. That last number is the unambiguous "disk can't keep up" signal.
+
+![Data rates during activation capture: D2H vs host-to-disk, with backpressure](/images/sae-activations/data_rates.png)
+
+The blue cloud is D2H (one burst per shard, comfortably fast). The red line is the disk: **~1 GB/s per shard flush**. And the forward *produces* activations at ~2.75 GB/s (862k tok/s × 3.3 KB/token). With only **two** buffers the saver can be at most one shard ahead, so once both fill, the main thread waits — the orange markers, climbing to ~2.4 s per rotation, **~35% of wall time on this run.**
+
+So my "375 MB/s" was wrong in an instructive way: that was the *whole-run average*, which is depressed *by the very stall I was claiming didn't exist* — circular. The instantaneous burst rate is what matters, and per burst the disk loses to the GPU. The saving grace is that the *average* production (dragged down by compile warmup and other overhead) sits **below** the ~1 GB/s drain, which means the imbalance is bursty, not sustained — exactly the regime that more buffering fixes. I added a `--buffers` knob and checked: going 2 → 4 buffers dropped the total buffer-wait from ~9.9 s to ~6.9 s, with per-rotation waits collapsing toward zero. Smaller shards would smooth it further. The lesson I keep re-learning: don't reason about averages when the system is bursty, and add the counter *before* you assert the bottleneck isn't there.
 
 ## Profiling: understanding where the time goes
 
