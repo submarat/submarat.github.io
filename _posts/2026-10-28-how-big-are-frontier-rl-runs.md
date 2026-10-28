@@ -424,6 +424,21 @@ Analysis and secondary sources:
 - [SWE-rebench V2](https://nebius.com/blog/posts/meet-swe-rebench-v2), [NeMo Gym](https://github.com/NVIDIA-NeMo/Gym)
 
 
+## Updates and surprises
+
+Things that changed my picture while researching this.
+
+- **Frontier performance after 30 RL steps and about $3M.** Each MiMo-V2.6 step was huge (25K trajectories, about 3B tokens), and pretraining cost several times more (about $12M for Pro, estimated). RL is the final polish, not the source of most capability.
+- **MiMo stopped while still improving.** No reason was given. A fixed budget timed to the release is the likeliest explanation.
+- **Full-parameter RL everywhere, despite "LoRA Without Regret".** Thinking Machines doesn't say its own Inkling used LoRA. Their claim covered small batches, far below frontier batch sizes.
+- **"15B active" is per token.** A batch of any realistic size touches every expert, so all 309B parameters must stay in memory.
+- **One RL step on a 309B MoE fits on 4 GPUs.** With LoRA, 4-bit experts and one sequence at a time, our step cost about $46. OLMo 3.1 used 224 H100s for weeks.
+- **vLLM couldn't serve our MiMo adapter.** The model has no LoRA support in vLLM, and our weights weren't in a format vLLM reads.
+- **NeMo AutoModel already supports MiMo-V2.6.** We initially missed it.
+- **Pretraining doesn't need a 1M context.** Most natural documents are far shorter, so pretraining runs at short contexts (Kimi K3 went from 8K to 64K).
+- **A targeted mid-training run extends the model to long contexts.** MiMo-V2.6 went to 256K, then 1M in a final mid-training stage, before agentic RL.
+- **A training micro-batch often holds a single rollout.** Agentic trajectories of 100K+ tokens fill a micro-batch alone, split across GPUs with context parallelism. Packing only batches the shorter rollouts.
+
 ---
 
 *Compiled in October 2026 with research help from Claude: parallel literature searches, Hugging Face checks of checkpoint branches, and our own MiMo-V2.6-Flash and OLMo 3 runs for calibration. Numbers marked "derived" are my arithmetic; "secondary" means not confirmed against a primary source.*
