@@ -454,14 +454,14 @@ img {
   cursor: pointer;
   font-family: $helveticaNeue;
   font-weight: 300;
-  font-size: 28px;
+  font-size: 22.4px;
   letter-spacing: 1px;
 }
 
 .site-description {
   margin: -5px 0 0 0;
   color: var(--theme-text-muted);
-  font-size: 16px;
+  font-size: 12.8px;
 
   @include mobile {
     margin: 3px 0;
@@ -471,11 +471,11 @@ img {
 nav {
   flex-shrink: 0;
   font-family: $helveticaNeue;
-  font-size: 18px;
+  font-size: 14.4px;
 
   @include mobile {
     display: block;
-    font-size: 16px;
+    font-size: 12.8px;
   }
 
   .theme-toggle {
