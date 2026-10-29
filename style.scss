@@ -251,7 +251,7 @@ html {
 body {
   position: relative;
   background: var(--theme-bg);
-  font: 14.4px/1.4 $helvetica;
+  font: 15.12px/1.4 $helvetica;
   color: var(--theme-text);
   transition: background-color 0.2s ease, color 0.2s ease;
 }
@@ -283,7 +283,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-  font-size: 24px;
+  font-size: 25.2px;
   a {
     color: inherit;
   }
@@ -297,15 +297,15 @@ h1 {
 }
 
 h2 {
-  font-size: 19.2px;
+  font-size: 20.16px;
 }
 
 h3 {
-  font-size: 16px;
+  font-size: 16.8px;
 }
 
 h4 {
-  font-size: 14.4px;
+  font-size: 15.12px;
   color: var(--theme-text-muted);
 }
 
@@ -454,14 +454,14 @@ img {
   cursor: pointer;
   font-family: $helveticaNeue;
   font-weight: 300;
-  font-size: 22.4px;
+  font-size: 23.52px;
   letter-spacing: 1px;
 }
 
 .site-description {
   margin: -5px 0 0 0;
   color: var(--theme-text-muted);
-  font-size: 12.8px;
+  font-size: 13.44px;
 
   @include mobile {
     margin: 3px 0;
@@ -471,11 +471,11 @@ img {
 nav {
   flex-shrink: 0;
   font-family: $helveticaNeue;
-  font-size: 14.4px;
+  font-size: 15.12px;
 
   @include mobile {
     display: block;
-    font-size: 12.8px;
+    font-size: 13.44px;
   }
 
   .theme-toggle {
