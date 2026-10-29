@@ -251,7 +251,7 @@ html {
 body {
   position: relative;
   background: var(--theme-bg);
-  font: 14.4px/1.6 $helvetica;
+  font: 14.4px/1.4 $helvetica;
   color: var(--theme-text);
   transition: background-color 0.2s ease, color 0.2s ease;
 }
@@ -263,8 +263,8 @@ body {
 
 .container {
   margin: 0 auto;
-  max-width: 600px;
-  padding: 0 12px;
+  max-width: 810px;
+  padding: 0 9px;
   width: 100%;
 }
 
